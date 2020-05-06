@@ -1,4 +1,8 @@
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+# Airspace Link | Steven Olthoff
+
+## Ideas
+
+- Feature: toggle satellite/street mode
 
 ## Available Scripts
 
