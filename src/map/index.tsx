@@ -12,16 +12,20 @@ import {
   intersect,
   Feature,
   Polygon,
+  Properties,
+  Geometry,
 } from "@turf/turf"
 
 interface MapProps {}
 
 export default class Map extends React.Component<MapProps> {
   map: L.Map | null = null
+  drawnItemsFeatureGroup: L.FeatureGroup
   controlledAirspacePolygon: Feature<Polygon>
 
   constructor(props: MapProps) {
     super(props)
+    this.drawnItemsFeatureGroup = L.featureGroup()
     this.controlledAirspacePolygon = polygon(
       ControlledAirspaceGeoJson.features[0].geometry.coordinates
     )
@@ -32,7 +36,7 @@ export default class Map extends React.Component<MapProps> {
     this.addTileLayer(this.map)
     this.addControlledAirspace(this.map)
     this.centerMapOnControlledAirspace(this.map)
-    this.addDrawPlugin(this.map)
+    this.addDrawPlugin(this.map, this.drawnItemsFeatureGroup)
     this.addIntersectionCheck(this.map)
   }
 
@@ -70,16 +74,15 @@ export default class Map extends React.Component<MapProps> {
     map.setView([latitude, longitude], 13)
   }
 
-  addDrawPlugin(map: L.Map) {
-    const drawnItems = new L.FeatureGroup()
-    map.addLayer(drawnItems)
+  addDrawPlugin(map: L.Map, drawnItemsFeatureGroup: L.FeatureGroup) {
+    map.addLayer(drawnItemsFeatureGroup)
 
     const shapeOptions = {
       color: "green",
     }
     const drawControl = new L.Control.Draw({
       edit: {
-        featureGroup: drawnItems,
+        featureGroup: drawnItemsFeatureGroup,
       },
       draw: {
         polygon: {
@@ -97,7 +100,7 @@ export default class Map extends React.Component<MapProps> {
     map.addControl(drawControl)
 
     map.on(L.Draw.Event.CREATED, (event: any) => {
-      drawnItems.addLayer(event.layer)
+      drawnItemsFeatureGroup.addLayer(event.layer)
     })
   }
 
@@ -106,15 +109,18 @@ export default class Map extends React.Component<MapProps> {
       const shape: L.LatLng[] = event.layer.getLatLngs()[0]
       const coordinates: number[][] = this.getTurfCoordinates(shape)
       const newlyDrawnPolygon = polygon([coordinates])
-      const intersection = intersect(
+      const intersection: Feature<Polygon, Properties> | null = intersect(
         newlyDrawnPolygon,
         this.controlledAirspacePolygon
       )
-      console.log("intersection", intersection)
+      if (intersection !== null) {
+        const intersectingPolygon = intersection.geometry as Polygon
+        this.drawPolygon(intersectingPolygon)
+      }
     })
   }
 
-  getTurfCoordinates(latLngs: L.LatLng[]): number[][] {
+  private getTurfCoordinates(latLngs: L.LatLng[]): number[][] {
     let coordinates: number[][] = latLngs.map((latLng: L.LatLng) => [
       latLng.lng,
       latLng.lat,
@@ -122,6 +128,16 @@ export default class Map extends React.Component<MapProps> {
     const firstCoordinate: number[] = [latLngs[0].lng, latLngs[0].lat]
     coordinates.push(firstCoordinate)
     return coordinates
+  }
+
+  private drawPolygon(polygon: Polygon) {
+    const shape = polygon.coordinates[0]
+    let coordinates = shape.map((coordinate) => ({
+      lng: coordinate[0],
+      lat: coordinate[1],
+    }))
+    coordinates.pop()
+    L.polygon(coordinates).addTo(this.drawnItemsFeatureGroup)
   }
 
   render() {

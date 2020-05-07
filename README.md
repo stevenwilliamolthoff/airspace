@@ -1,5 +1,9 @@
 # Airspace Link | Steven Olthoff
 
+## To Do
+
+- On polygon delete, delete the intersecting polygon.
+
 ## Ideas
 
 - Feature: toggle satellite/street mode
