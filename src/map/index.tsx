@@ -1,6 +1,8 @@
 import React from "react"
 import "./map.css"
 import L from "leaflet"
+import "leaflet-draw"
+import "leaflet-draw/dist/leaflet.draw.css"
 import "leaflet/dist/leaflet.css"
 import ControlledAirspaceGeoJson from "../faa-controlled-airspace-DTW"
 import { centroid as getCentroid, getCoord } from "@turf/turf"
@@ -8,16 +10,17 @@ import { centroid as getCentroid, getCoord } from "@turf/turf"
 interface MapProps {}
 
 export default class Map extends React.Component<MapProps> {
-  leafletMap: L.Map | null = null
+  map: L.Map | null = null
 
   componentDidMount() {
-    this.leafletMap = L.map("map")
-    this.addTileLayer(this.leafletMap)
-    this.addControlledAirspace(this.leafletMap)
-    this.centerMapOnControlledAirspace(this.leafletMap)
+    this.map = L.map("map")
+    this.addTileLayer(this.map)
+    this.addControlledAirspace(this.map)
+    this.centerMapOnControlledAirspace(this.map)
+    this.addDrawPlugin(this.map)
   }
 
-  addTileLayer(leafletMap: L.Map) {
+  addTileLayer(map: L.Map) {
     const urlTemplate =
       "https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}"
     const attribution =
@@ -32,23 +35,56 @@ export default class Map extends React.Component<MapProps> {
       tileSize: 512,
       zoomOffset: -1,
       accessToken,
-    }).addTo(leafletMap)
+    }).addTo(map)
   }
 
-  addControlledAirspace(leafletMap: L.Map) {
-    const controlledAirspaceStyle = { color: "red" }
+  addControlledAirspace(map: L.Map) {
+    const controlledAirspaceStyle = { color: "rgba(255, 0, 0, .5)" }
     L.geoJSON(ControlledAirspaceGeoJson, {
       style: controlledAirspaceStyle,
-    }).addTo(leafletMap)
+    }).addTo(map)
   }
 
-  centerMapOnControlledAirspace(leafletMap: L.Map) {
+  centerMapOnControlledAirspace(map: L.Map) {
     const centroid = getCentroid(ControlledAirspaceGeoJson)
     const centroidCoordinates = getCoord(centroid)
     const longitude = centroidCoordinates[0]
     const latitude = centroidCoordinates[1]
 
-    leafletMap.setView([latitude, longitude], 13)
+    map.setView([latitude, longitude], 13)
+  }
+
+  addDrawPlugin(map: L.Map) {
+    const drawnItems = new L.FeatureGroup()
+    map.addLayer(drawnItems)
+
+    const shapeOptions = {
+      color: "green",
+    }
+    const drawControl = new L.Control.Draw({
+      edit: {
+        featureGroup: drawnItems,
+      },
+      draw: {
+        polygon: {
+          shapeOptions,
+        },
+        rectangle: {
+          shapeOptions,
+        },
+        circle: {
+          shapeOptions,
+        },
+        polyline: false,
+        marker: false,
+        circlemarker: false,
+      },
+    })
+    map.addControl(drawControl)
+
+    map.on("draw:created", (event: any) => {
+      drawnItems.addLayer(event.layer)
+    })
   }
 
   render() {
