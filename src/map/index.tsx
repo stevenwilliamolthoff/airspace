@@ -13,7 +13,6 @@ import {
   Feature,
   Polygon,
   Properties,
-  Geometry,
 } from "@turf/turf"
 
 interface MapProps {}
@@ -59,7 +58,7 @@ export default class Map extends React.Component<MapProps> {
   }
 
   addControlledAirspace(map: L.Map) {
-    const controlledAirspaceStyle = { color: "rgba(255, 0, 0, .5)" }
+    const controlledAirspaceStyle = { color: "rgba(255, 100, 100, .5)" }
     L.geoJSON(ControlledAirspaceGeoJson, {
       style: controlledAirspaceStyle,
     }).addTo(map)
@@ -137,7 +136,7 @@ export default class Map extends React.Component<MapProps> {
       lat: coordinate[1],
     }))
     coordinates.pop()
-    L.polygon(coordinates).addTo(this.drawnItemsFeatureGroup)
+    L.polygon(coordinates, { color: "red" }).addTo(this.drawnItemsFeatureGroup)
   }
 
   render() {
