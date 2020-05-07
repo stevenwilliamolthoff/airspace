@@ -1,6 +1,6 @@
 import React from "react"
 import "./App.css"
-import Operations from "./operations"
+import Operations from "./Operations"
 
 function App() {
   return (

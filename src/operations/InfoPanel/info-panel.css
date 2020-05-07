@@ -1,0 +1,25 @@
+.info-panel {
+  text-transform: uppercase;
+}
+
+.info-panel__title-container {
+  padding: 12px;
+  border-bottom: 1px solid #eef1f3;
+}
+
+.info-panel__title-container__title {
+  font-weight: 500;
+}
+
+.info-panel__title-container__input {
+  width: 100%;
+  height: 16px;
+  font-size: 16px;
+  outline: none;
+  border: none;
+  text-transform: uppercase;
+}
+
+.info-panel__title-container__title:hover {
+  cursor: pointer;
+}

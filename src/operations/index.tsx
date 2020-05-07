@@ -1,6 +1,7 @@
 import React from "react"
-import Map from "../map"
+import Map from "../Map"
 import "./operations.css"
+import InfoPanel from "./InfoPanel"
 
 export default class Operations extends React.Component<any, any> {
   constructor(props: any) {
@@ -31,7 +32,9 @@ export default class Operations extends React.Component<any, any> {
         <div className='operations__map'>
           <Map></Map>
           {this.state.showOperationInfo ? (
-            <div className='operations__map__info'></div>
+            <div className='operations__map__info'>
+              <InfoPanel></InfoPanel>
+            </div>
           ) : null}
         </div>
       </div>
