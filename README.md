@@ -7,6 +7,7 @@
 ## Ideas
 
 - Feature: toggle satellite/street mode
+- Merge overlapping drawn polygons
 
 ## Available Scripts
 
