@@ -28,7 +28,16 @@
   cursor: pointer;
 }
 
+.operations__toolbar__new-operation-button:active {
+  cursor: pointer;
+  background-color: #4085b3;
+}
+
 .operations__map {
-  display: grid;
-  grid-template-columns: auto 25%;
+  display: flex;
+}
+
+.operations__map__info {
+  height: 100%;
+  width: 33%;
 }
