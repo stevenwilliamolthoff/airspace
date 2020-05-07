@@ -36,7 +36,10 @@ export default class Map extends React.Component<MapProps> {
   }
 
   addControlledAirspace(leafletMap: L.Map) {
-    L.geoJSON(ControlledAirspaceGeoJson).addTo(leafletMap)
+    const controlledAirspaceStyle = { color: "red" }
+    L.geoJSON(ControlledAirspaceGeoJson, {
+      style: controlledAirspaceStyle,
+    }).addTo(leafletMap)
   }
 
   centerMapOnControlledAirspace(leafletMap: L.Map) {
