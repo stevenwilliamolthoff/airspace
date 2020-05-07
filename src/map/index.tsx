@@ -5,12 +5,27 @@ import "leaflet-draw"
 import "leaflet-draw/dist/leaflet.draw.css"
 import "leaflet/dist/leaflet.css"
 import ControlledAirspaceGeoJson from "../faa-controlled-airspace-DTW"
-import { centroid as getCentroid, getCoord } from "@turf/turf"
+import {
+  centroid as getCentroid,
+  getCoord,
+  polygon,
+  intersect,
+  Feature,
+  Polygon,
+} from "@turf/turf"
 
 interface MapProps {}
 
 export default class Map extends React.Component<MapProps> {
   map: L.Map | null = null
+  controlledAirspacePolygon: Feature<Polygon>
+
+  constructor(props: MapProps) {
+    super(props)
+    this.controlledAirspacePolygon = polygon(
+      ControlledAirspaceGeoJson.features[0].geometry.coordinates
+    )
+  }
 
   componentDidMount() {
     this.map = L.map("map")
@@ -18,6 +33,7 @@ export default class Map extends React.Component<MapProps> {
     this.addControlledAirspace(this.map)
     this.centerMapOnControlledAirspace(this.map)
     this.addDrawPlugin(this.map)
+    this.addIntersectionCheck(this.map)
   }
 
   addTileLayer(map: L.Map) {
@@ -72,9 +88,7 @@ export default class Map extends React.Component<MapProps> {
         rectangle: {
           shapeOptions,
         },
-        circle: {
-          shapeOptions,
-        },
+        circle: false,
         polyline: false,
         marker: false,
         circlemarker: false,
@@ -82,9 +96,32 @@ export default class Map extends React.Component<MapProps> {
     })
     map.addControl(drawControl)
 
-    map.on("draw:created", (event: any) => {
+    map.on(L.Draw.Event.CREATED, (event: any) => {
       drawnItems.addLayer(event.layer)
     })
+  }
+
+  addIntersectionCheck(map: L.Map) {
+    map.on(L.Draw.Event.CREATED, (event: any) => {
+      const shape: L.LatLng[] = event.layer.getLatLngs()[0]
+      const coordinates: number[][] = this.getTurfCoordinates(shape)
+      const newlyDrawnPolygon = polygon([coordinates])
+      const intersection = intersect(
+        newlyDrawnPolygon,
+        this.controlledAirspacePolygon
+      )
+      console.log("intersection", intersection)
+    })
+  }
+
+  getTurfCoordinates(latLngs: L.LatLng[]): number[][] {
+    let coordinates: number[][] = latLngs.map((latLng: L.LatLng) => [
+      latLng.lng,
+      latLng.lat,
+    ])
+    const firstCoordinate: number[] = [latLngs[0].lng, latLngs[0].lat]
+    coordinates.push(firstCoordinate)
+    return coordinates
   }
 
   render() {
