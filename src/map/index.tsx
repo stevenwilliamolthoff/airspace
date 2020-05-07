@@ -1,17 +1,23 @@
-import React, { FunctionComponent, useEffect } from "react"
+import React from "react"
 import "./map.css"
 import L from "leaflet"
 import "leaflet/dist/leaflet.css"
+import ControlledAirspaceGeoJson from "../faa-controlled-airspace-DTW"
+import { centroid as getCentroid, getCoord } from "@turf/turf"
 
 interface MapProps {}
 
 export default class Map extends React.Component<MapProps> {
   leafletMap: L.Map | null = null
-  constructor(props: MapProps) {
-    super(props)
-  }
+
   componentDidMount() {
-    this.leafletMap = L.map("map").setView([51.505, -0.09], 13)
+    this.leafletMap = L.map("map")
+    this.addTileLayer(this.leafletMap)
+    this.addControlledAirspace(this.leafletMap)
+    this.centerMapOnControlledAirspace(this.leafletMap)
+  }
+
+  addTileLayer(leafletMap: L.Map) {
     const urlTemplate =
       "https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}"
     const attribution =
@@ -26,8 +32,22 @@ export default class Map extends React.Component<MapProps> {
       tileSize: 512,
       zoomOffset: -1,
       accessToken,
-    }).addTo(this.leafletMap)
+    }).addTo(leafletMap)
   }
+
+  addControlledAirspace(leafletMap: L.Map) {
+    L.geoJSON(ControlledAirspaceGeoJson).addTo(leafletMap)
+  }
+
+  centerMapOnControlledAirspace(leafletMap: L.Map) {
+    const centroid = getCentroid(ControlledAirspaceGeoJson)
+    const centroidCoordinates = getCoord(centroid)
+    const longitude = centroidCoordinates[0]
+    const latitude = centroidCoordinates[1]
+
+    leafletMap.setView([latitude, longitude], 13)
+  }
+
   render() {
     return <div id='map'></div>
   }
