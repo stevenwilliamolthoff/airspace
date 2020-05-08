@@ -13,6 +13,9 @@ export default class List extends React.Component<ListProps, any> {
   }
 
   render() {
+    if (this.props.operations.length === 0) {
+      return <div className='list list--empty'>No operations</div>
+    }
     const listItems = this.props.operations.map((operation) => (
       <div key={operation.id} className='list__item'>
         {operation.title}

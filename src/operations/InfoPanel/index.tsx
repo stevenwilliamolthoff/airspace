@@ -3,6 +3,7 @@ import "./info-panel.scss"
 
 interface InfoPanelProps {
   defaultTitle: string
+  emitTitleChange: Function
 }
 
 export default class InfoPanel extends React.Component<InfoPanelProps, any> {
@@ -21,6 +22,7 @@ export default class InfoPanel extends React.Component<InfoPanelProps, any> {
   onTitleBlur() {
     if (this.state.title.length > 0) {
       this.setState({ editing: false })
+      this.props.emitTitleChange(this.state.title)
     } else {
       if (this.titleInputRef !== null) {
         this.titleInputRef.current.focus()

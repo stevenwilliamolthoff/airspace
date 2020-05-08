@@ -1,5 +1,5 @@
 export interface Operation {
-  id?: number
+  id: number
   title: string
   feature_collection?: any
 }
