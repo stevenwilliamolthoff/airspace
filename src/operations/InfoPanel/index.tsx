@@ -1,5 +1,5 @@
 import React from "react"
-import "./info-panel.css"
+import "./info-panel.scss"
 
 export default class InfoPanel extends React.Component<any, any> {
   titleInputRef: any

@@ -6,6 +6,7 @@ import "leaflet-draw/dist/leaflet.draw.css"
 import "leaflet/dist/leaflet.css"
 import ControlledAirspaceGeoJson from "../faa-controlled-airspace-DTW"
 import {
+  area,
   centroid as getCentroid,
   getCoord,
   polygon,
@@ -14,12 +15,17 @@ import {
   Polygon,
   Properties,
 } from "@turf/turf"
+import Message from "./Message"
 
 interface MapProps {
   editingOperation: boolean
 }
 
-export default class Map extends React.Component<MapProps> {
+interface MapState {
+  flightApproved: boolean | null
+}
+
+export default class Map extends React.Component<MapProps, MapState> {
   map: L.Map | null = null
   drawnItemsFeatureGroup: L.FeatureGroup
   drawControl: L.Control.Draw
@@ -31,7 +37,6 @@ export default class Map extends React.Component<MapProps> {
     this.controlledAirspacePolygon = polygon(
       ControlledAirspaceGeoJson.features[0].geometry.coordinates
     )
-    console.log(this.props.editingOperation)
 
     const shapeOptions = {
       color: "green",
@@ -41,10 +46,13 @@ export default class Map extends React.Component<MapProps> {
       position: "topright",
       edit: {
         featureGroup: this.drawnItemsFeatureGroup,
+        edit: false,
+        remove: false,
       },
       draw: {
         polygon: {
           shapeOptions,
+          allowIntersection: false,
         },
         rectangle: {
           shapeOptions,
@@ -120,17 +128,27 @@ export default class Map extends React.Component<MapProps> {
   addIntersectionCheck(map: L.Map) {
     map.on(L.Draw.Event.CREATED, (event: any) => {
       const shape: L.LatLng[] = event.layer.getLatLngs()[0]
-      const coordinates: number[][] = this.getTurfCoordinates(shape)
-      const newlyDrawnPolygon = polygon([coordinates])
-      const intersection: Feature<Polygon, Properties> | null = intersect(
-        newlyDrawnPolygon,
-        this.controlledAirspacePolygon
-      )
+      const intersection: Feature<
+        Polygon,
+        Properties
+      > | null = this.getIntersectionWithControlledAirspace(shape)
       if (intersection !== null) {
         const intersectingPolygon = intersection.geometry as Polygon
+        console.log(area(intersectingPolygon))
         this.drawPolygon(intersectingPolygon)
       }
+      // this.setState({ flightApproved})
     })
+  }
+
+  private getIntersectionWithControlledAirspace(shape: L.LatLng[]) {
+    const coordinates: number[][] = this.getTurfCoordinates(shape)
+    const newlyDrawnPolygon = polygon([coordinates])
+    const intersection: Feature<Polygon, Properties> | null = intersect(
+      newlyDrawnPolygon,
+      this.controlledAirspacePolygon
+    )
+    return intersection
   }
 
   private getTurfCoordinates(latLngs: L.LatLng[]): number[][] {
@@ -156,6 +174,11 @@ export default class Map extends React.Component<MapProps> {
   }
 
   render() {
-    return <div id='map'></div>
+    return (
+      <div className='map'>
+        <Message flightApproved={true}></Message>
+        <div id='map' />
+      </div>
+    )
   }
 }

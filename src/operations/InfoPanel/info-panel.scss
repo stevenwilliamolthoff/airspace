@@ -1,10 +1,14 @@
+$border: 1px solid #d9dbdb;
+
 .info-panel {
   text-transform: uppercase;
+  border-left: $border;
+  height: 100%;
 }
 
 .info-panel__title-container {
   padding: 12px;
-  border-bottom: 1px solid #eef1f3;
+  border-bottom: $border;
 }
 
 .info-panel__title-container__title {

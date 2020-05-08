@@ -1,6 +1,6 @@
 import React from "react"
 import Map from "../Map"
-import "./operations.css"
+import "./operations.scss"
 import InfoPanel from "./InfoPanel"
 
 export default class Operations extends React.Component<any, any> {

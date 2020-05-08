@@ -1,4 +1,15 @@
-#map {
+#map,
+.map {
   height: 100%;
   width: 100%;
+}
+
+.map {
+  position: relative;
+  display: flex;
+  justify-content: center;
+}
+
+#map {
+  z-index: 1;
 }
