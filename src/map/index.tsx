@@ -125,6 +125,7 @@ export default class Map extends React.Component<MapProps, MapState> {
   addDrawingLayer(map: L.Map) {
     map.on(L.Draw.Event.CREATED, (event: any) => {
       this.drawnItemsFeatureGroup.addLayer(event.layer)
+      console.log(JSON.stringify(this.drawnItemsFeatureGroup.toGeoJSON()))
     })
   }
 
