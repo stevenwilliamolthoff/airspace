@@ -15,19 +15,46 @@ import {
   Properties,
 } from "@turf/turf"
 
-interface MapProps {}
+interface MapProps {
+  editingOperation: boolean
+}
 
 export default class Map extends React.Component<MapProps> {
   map: L.Map | null = null
   drawnItemsFeatureGroup: L.FeatureGroup
+  drawControl: L.Control.Draw
+
   controlledAirspacePolygon: Feature<Polygon>
 
   constructor(props: MapProps) {
     super(props)
-    this.drawnItemsFeatureGroup = L.featureGroup()
     this.controlledAirspacePolygon = polygon(
       ControlledAirspaceGeoJson.features[0].geometry.coordinates
     )
+    console.log(this.props.editingOperation)
+
+    const shapeOptions = {
+      color: "green",
+    }
+    this.drawnItemsFeatureGroup = L.featureGroup()
+    this.drawControl = new L.Control.Draw({
+      position: "topright",
+      edit: {
+        featureGroup: this.drawnItemsFeatureGroup,
+      },
+      draw: {
+        polygon: {
+          shapeOptions,
+        },
+        rectangle: {
+          shapeOptions,
+        },
+        circle: false,
+        polyline: false,
+        marker: false,
+        circlemarker: false,
+      },
+    })
   }
 
   componentDidMount() {
@@ -35,8 +62,14 @@ export default class Map extends React.Component<MapProps> {
     this.addTileLayer(this.map)
     this.addControlledAirspace(this.map)
     this.centerMapOnControlledAirspace(this.map)
-    this.addDrawPlugin(this.map, this.drawnItemsFeatureGroup)
+    this.addDrawingLayer(this.map)
     this.addIntersectionCheck(this.map)
+  }
+
+  componentDidUpdate() {
+    if (this.map && this.props.editingOperation) {
+      this.enableDrawing(this.map)
+    }
   }
 
   addTileLayer(map: L.Map) {
@@ -73,34 +106,15 @@ export default class Map extends React.Component<MapProps> {
     map.setView([latitude, longitude], 13)
   }
 
-  addDrawPlugin(map: L.Map, drawnItemsFeatureGroup: L.FeatureGroup) {
-    map.addLayer(drawnItemsFeatureGroup)
-
-    const shapeOptions = {
-      color: "green",
-    }
-    const drawControl = new L.Control.Draw({
-      edit: {
-        featureGroup: drawnItemsFeatureGroup,
-      },
-      draw: {
-        polygon: {
-          shapeOptions,
-        },
-        rectangle: {
-          shapeOptions,
-        },
-        circle: false,
-        polyline: false,
-        marker: false,
-        circlemarker: false,
-      },
-    })
-    map.addControl(drawControl)
-
+  addDrawingLayer(map: L.Map) {
     map.on(L.Draw.Event.CREATED, (event: any) => {
-      drawnItemsFeatureGroup.addLayer(event.layer)
+      this.drawnItemsFeatureGroup.addLayer(event.layer)
     })
+  }
+
+  enableDrawing(map: L.Map) {
+    map.addLayer(this.drawnItemsFeatureGroup)
+    map.addControl(this.drawControl)
   }
 
   addIntersectionCheck(map: L.Map) {
@@ -136,7 +150,9 @@ export default class Map extends React.Component<MapProps> {
       lat: coordinate[1],
     }))
     coordinates.pop()
-    L.polygon(coordinates, { color: "red" }).addTo(this.drawnItemsFeatureGroup)
+    L.polygon(coordinates, { color: "red" })
+      .addTo(this.drawnItemsFeatureGroup)
+      .bringToFront()
   }
 
   render() {

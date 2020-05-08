@@ -7,12 +7,12 @@ export default class Operations extends React.Component<any, any> {
   constructor(props: any) {
     super(props)
     this.state = {
-      showOperationInfo: false,
+      editingOperation: false,
     }
   }
 
   onNewOperationButtonClick() {
-    this.setState({ showOperationInfo: true })
+    this.setState({ editingOperation: true })
   }
 
   render() {
@@ -30,8 +30,8 @@ export default class Operations extends React.Component<any, any> {
           </div>
         </div>
         <div className='operations__map'>
-          <Map></Map>
-          {this.state.showOperationInfo ? (
+          <Map editingOperation={this.state.editingOperation}></Map>
+          {this.state.editingOperation ? (
             <div className='operations__map__info'>
               <InfoPanel></InfoPanel>
             </div>
