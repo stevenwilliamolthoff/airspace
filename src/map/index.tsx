@@ -28,6 +28,7 @@ interface MapState {
 export default class Map extends React.Component<MapProps, MapState> {
   map: L.Map | null = null
   drawnItemsFeatureGroup: L.FeatureGroup
+  intersectionLayerGroup: L.LayerGroup
   drawControl: L.Control.Draw
 
   controlledAirspacePolygon: Feature<Polygon>
@@ -42,6 +43,7 @@ export default class Map extends React.Component<MapProps, MapState> {
       color: "green",
     }
     this.drawnItemsFeatureGroup = L.featureGroup()
+    this.intersectionLayerGroup = L.layerGroup()
     this.drawControl = new L.Control.Draw({
       position: "topright",
       edit: {
@@ -122,6 +124,7 @@ export default class Map extends React.Component<MapProps, MapState> {
 
   enableDrawing(map: L.Map) {
     map.addLayer(this.drawnItemsFeatureGroup)
+    map.addLayer(this.intersectionLayerGroup)
     map.addControl(this.drawControl)
   }
 
@@ -137,7 +140,6 @@ export default class Map extends React.Component<MapProps, MapState> {
         console.log(area(intersectingPolygon))
         this.drawPolygon(intersectingPolygon)
       }
-      // this.setState({ flightApproved})
     })
   }
 
@@ -168,9 +170,8 @@ export default class Map extends React.Component<MapProps, MapState> {
       lat: coordinate[1],
     }))
     coordinates.pop()
-    L.polygon(coordinates, { color: "red" })
-      .addTo(this.drawnItemsFeatureGroup)
-      .bringToFront()
+    const leafletPolygon = L.polygon(coordinates, { color: "red" })
+    this.intersectionLayerGroup.addLayer(leafletPolygon)
   }
 
   render() {
