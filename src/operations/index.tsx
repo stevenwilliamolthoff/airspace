@@ -6,13 +6,24 @@ import InfoPanel from "./InfoPanel"
 import api from "../api"
 import { Operation } from "../interfaces/operations"
 
-export default class Operations extends React.Component<any, any> {
+interface OperationsState {
+  operations: Operation[]
+  editingOperation: boolean
+}
+
+export default class Operations extends React.Component<any, OperationsState> {
   newOperationDefaultTitle = "Untitled Operation"
   constructor(props: any) {
     super(props)
     this.state = {
+      operations: [],
       editingOperation: false,
     }
+  }
+
+  async componentDidMount() {
+    const response = await api.getOperations()
+    this.setState({ operations: response.operations })
   }
 
   async onNewOperationButtonClick() {
@@ -23,16 +34,26 @@ export default class Operations extends React.Component<any, any> {
     try {
       const response = await api.putOperation(operation)
       operation = response.operation
+      this.addOperation(operation)
+
       console.log(operation)
     } catch (error) {
       console.error("Failed to put new operation.")
     }
   }
 
+  addOperation(operation: Operation) {
+    let operations = this.state.operations
+    operations.push(operation)
+    this.setState({ operations })
+  }
+
   render() {
     return (
       <div className='operations'>
-        <List className='operations__list'></List>
+        <div className='operations__list'>
+          <List operations={this.state.operations}></List>
+        </div>
         <div className='operations__dashboard'>
           <div className='operations__dashboard__toolbar'>
             <div className='operations__dashboard__toolbar__search'>

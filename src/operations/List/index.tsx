@@ -1,27 +1,19 @@
 import React from "react"
 import "./list.scss"
+import api from "../../api"
+import { Operation } from "../../interfaces/operations"
 
-export default class List extends React.Component<any, any> {
-  operations = [
-    {
-      id: 1,
-      title: "Operation 1",
-    },
-    {
-      id: 2,
-      title: "Operation 2",
-    },
-    {
-      id: 3,
-      title: "Operation 1",
-    },
-    {
-      id: 4,
-      title: "Operation 2",
-    },
-  ]
+interface ListProps {
+  operations: Operation[]
+}
+
+export default class List extends React.Component<ListProps, any> {
+  constructor(props: ListProps) {
+    super(props)
+  }
+
   render() {
-    const listItems = this.operations.map((operation) => (
+    const listItems = this.props.operations.map((operation) => (
       <div key={operation.id} className='list__item'>
         {operation.title}
       </div>

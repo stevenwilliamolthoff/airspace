@@ -7,6 +7,18 @@
   grid-template-columns: 25% auto;
 }
 
+.operations__list {
+  height: 100%;
+  position: relative;
+  display: flex;
+  overflow-y: scroll;
+  background-color: #2f3942;
+}
+
+.operations__list::-webkit-scrollbar {
+  display: none;
+}
+
 .operations__dashboard {
   display: grid;
   grid-template-rows: 48px auto;

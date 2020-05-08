@@ -9,6 +9,7 @@
 - Feature: toggle satellite/street mode
 - Merge overlapping drawn polygons
 - Handle > 1 controlled airspace areas
+- Tags/labels on operations.
 
 ## Available Scripts
 
