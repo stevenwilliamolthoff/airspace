@@ -55,6 +55,7 @@ export default class Map extends React.Component<MapProps, MapState> {
       edit: {
         featureGroup: this.drawnItemsFeatureGroup,
         edit: false,
+        remove: false,
       },
       draw: {
         polygon: {
