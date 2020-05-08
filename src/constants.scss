@@ -1,5 +1,9 @@
 $box-shadow--primary: 0px 4px 4px rgba(0, 0, 0, 0.1);
+$success--500: #4caf50;
+$failure--500: #b00020;
 
 :export {
   $box-shadow--primary: $box-shadow--primary;
+  $success--500: $success--500;
+  $failure--500: $failure--500;
 }

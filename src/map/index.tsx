@@ -23,7 +23,7 @@ interface MapProps {
 }
 
 interface MapState {
-  flightApproved: boolean | null
+  intersectionArea: number | null
 }
 
 export default class Map extends React.Component<MapProps, MapState> {
@@ -36,6 +36,11 @@ export default class Map extends React.Component<MapProps, MapState> {
 
   constructor(props: MapProps) {
     super(props)
+
+    this.state = {
+      intersectionArea: null,
+    }
+
     this.controlledAirspacePolygon = polygon(
       ControlledAirspaceGeoJson.features[0].geometry.coordinates
     )
@@ -50,7 +55,6 @@ export default class Map extends React.Component<MapProps, MapState> {
       edit: {
         featureGroup: this.drawnItemsFeatureGroup,
         edit: false,
-        remove: false,
       },
       draw: {
         polygon: {
@@ -136,11 +140,12 @@ export default class Map extends React.Component<MapProps, MapState> {
         Polygon,
         Properties
       > | null = this.getIntersectionWithControlledAirspace(shape)
-      if (intersection !== null) {
+      if (intersection === null) {
+        this.setState({ intersectionArea: 0 })
+      } else {
         const intersectingPolygon = intersection.geometry as Polygon
-        console.log(area(intersectingPolygon))
         this.drawIntersection(intersectingPolygon)
-        this.calculateIntersectionArea()
+        this.updateIntersectionArea()
       }
     })
   }
@@ -172,7 +177,7 @@ export default class Map extends React.Component<MapProps, MapState> {
       lat: coordinate[1],
     }))
     coordinates.pop()
-    const leafletPolygon = L.polygon(coordinates, { color: "red" })
+    const leafletPolygon = L.polygon(coordinates, { color: "#b00020" })
     this.intersectionLayerGroup.addLayer(leafletPolygon)
   }
 
@@ -187,19 +192,19 @@ export default class Map extends React.Component<MapProps, MapState> {
     return polygons
   }
 
-  private calculateIntersectionArea() {
+  private updateIntersectionArea() {
     const polygons: Feature<Polygon, Properties>[] = this.getPolygons(
       this.intersectionLayerGroup
     )
     const polygonUnion = union(...polygons)
     const areaOfUnionedIntersections = area(polygonUnion)
-    console.log(areaOfUnionedIntersections)
+    this.setState({ intersectionArea: areaOfUnionedIntersections })
   }
 
   render() {
     return (
       <div className='map'>
-        <Message flightApproved={true}></Message>
+        <Message intersectionArea={this.state.intersectionArea}></Message>
         <div id='map' />
       </div>
     )

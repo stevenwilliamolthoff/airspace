@@ -1,7 +1,7 @@
 @import "../../constants.scss";
 
 .message {
-  color: black;
+  color: white;
   position: absolute;
   margin: 8px;
   padding: 8px 12px;
@@ -9,4 +9,24 @@
   z-index: 2;
   background-color: white;
   box-shadow: $box-shadow--primary;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.message--approved {
+  background-color: $success--500;
+}
+
+.message--denied {
+  background-color: $failure--500;
+}
+
+.message__title {
+  font-weight: 500;
+}
+
+.message__subtitle {
+  font-size: 12px;
+  padding-top: 4px;
 }
