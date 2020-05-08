@@ -8,6 +8,7 @@
 
 - Feature: toggle satellite/street mode
 - Merge overlapping drawn polygons
+- Handle > 1 controlled airspace areas
 
 ## Available Scripts
 

@@ -14,6 +14,7 @@ import {
   Feature,
   Polygon,
   Properties,
+  union,
 } from "@turf/turf"
 import Message from "./Message"
 
@@ -138,7 +139,8 @@ export default class Map extends React.Component<MapProps, MapState> {
       if (intersection !== null) {
         const intersectingPolygon = intersection.geometry as Polygon
         console.log(area(intersectingPolygon))
-        this.drawPolygon(intersectingPolygon)
+        this.drawIntersection(intersectingPolygon)
+        this.calculateIntersectionArea()
       }
     })
   }
@@ -163,7 +165,7 @@ export default class Map extends React.Component<MapProps, MapState> {
     return coordinates
   }
 
-  private drawPolygon(polygon: Polygon) {
+  private drawIntersection(polygon: Polygon) {
     const shape = polygon.coordinates[0]
     let coordinates = shape.map((coordinate) => ({
       lng: coordinate[0],
@@ -172,6 +174,26 @@ export default class Map extends React.Component<MapProps, MapState> {
     coordinates.pop()
     const leafletPolygon = L.polygon(coordinates, { color: "red" })
     this.intersectionLayerGroup.addLayer(leafletPolygon)
+  }
+
+  private getPolygons(layerGroup: L.LayerGroup) {
+    let polygons: Feature<Polygon, Properties>[] = []
+    layerGroup.eachLayer((layer: any) => {
+      const shape: L.LatLng[] = layer.getLatLngs()[0]
+      const coordinates: number[][] = this.getTurfCoordinates(shape)
+      const newPolygon = polygon([coordinates])
+      polygons.push(newPolygon)
+    })
+    return polygons
+  }
+
+  private calculateIntersectionArea() {
+    const polygons: Feature<Polygon, Properties>[] = this.getPolygons(
+      this.intersectionLayerGroup
+    )
+    const polygonUnion = union(...polygons)
+    const areaOfUnionedIntersections = area(polygonUnion)
+    console.log(areaOfUnionedIntersections)
   }
 
   render() {
