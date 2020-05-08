@@ -3,14 +3,11 @@ import Map from "../Map"
 import "./operations.scss"
 import List from "./List"
 import InfoPanel from "./InfoPanel"
-
-interface Operation {
-  id: number
-  title: string
-  feature_collection: any
-}
+import api from "../api"
+import { Operation } from "../interfaces/operations"
 
 export default class Operations extends React.Component<any, any> {
+  newOperationDefaultTitle = "Untitled Operation"
   constructor(props: any) {
     super(props)
     this.state = {
@@ -18,8 +15,18 @@ export default class Operations extends React.Component<any, any> {
     }
   }
 
-  onNewOperationButtonClick() {
+  async onNewOperationButtonClick() {
     this.setState({ editingOperation: true })
+    let operation: Operation = {
+      title: this.newOperationDefaultTitle,
+    }
+    try {
+      const response = await api.putOperation(operation)
+      operation = response.operation
+      console.log(operation)
+    } catch (error) {
+      console.error("Failed to put new operation.")
+    }
   }
 
   render() {
@@ -42,7 +49,9 @@ export default class Operations extends React.Component<any, any> {
             <Map editingOperation={this.state.editingOperation}></Map>
             {this.state.editingOperation ? (
               <div className='operations__dashboard__map__info'>
-                <InfoPanel></InfoPanel>
+                <InfoPanel
+                  defaultTitle={this.newOperationDefaultTitle}
+                ></InfoPanel>
               </div>
             ) : null}
           </div>

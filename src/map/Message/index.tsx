@@ -13,7 +13,7 @@ export default class Message extends React.Component<MessageProps, any> {
     const roundedArea = Number(this.props.intersectionArea).toFixed(2)
     return (
       <div className='message__subtitle'>
-        Intersection with controlled airspace: <b>{roundedArea} m&sup2;</b>
+        Area in controlled airspace: <b>{roundedArea} m&sup2;</b>
       </div>
     )
   }

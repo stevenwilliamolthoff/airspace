@@ -1,12 +1,16 @@
 import React from "react"
 import "./info-panel.scss"
 
-export default class InfoPanel extends React.Component<any, any> {
+interface InfoPanelProps {
+  defaultTitle: string
+}
+
+export default class InfoPanel extends React.Component<InfoPanelProps, any> {
   titleInputRef: any
-  constructor(props: any) {
+  constructor(props: InfoPanelProps) {
     super(props)
     this.state = {
-      title: "",
+      title: this.props.defaultTitle,
       editing: true,
     }
     this.titleInputRef = React.createRef()
