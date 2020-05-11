@@ -159,10 +159,6 @@ export default class Map extends React.Component<MapProps, MapState> {
     this.intersectionLayers.addLayer(leafletPolygon)
   }
 
-  addLayerToIntersectionLayers(layer: L.Layer) {
-    this.intersectionLayers.addLayer(layer)
-  }
-
   getIntersectionWithControlledAirspace(shape: L.LatLng[]) {
     const coordinates: number[][] = this.getTurfCoordinates(shape)
     const newlyDrawnPolygon = turf.polygon([coordinates])
@@ -181,58 +177,6 @@ export default class Map extends React.Component<MapProps, MapState> {
     const firstCoordinate: number[] = [latLngs[0].lng, latLngs[0].lat]
     coordinates.push(firstCoordinate)
     return coordinates
-  }
-
-  getPolygons(layerGroup: L.LayerGroup) {
-    let polygons: turf.Feature<turf.Polygon, turf.Properties>[] = []
-    layerGroup.eachLayer((layer: any) => {
-      const shape: L.LatLng[] = layer.getLatLngs()[0]
-      const coordinates: number[][] = this.getTurfCoordinates(shape)
-      const newPolygon = turf.polygon([coordinates])
-      polygons.push(newPolygon)
-    })
-    return polygons
-  }
-
-  drawMergedIntersection(coordinates: turf.Position[][]) {
-    let newCoordinates = coordinates.map((coordinate: any) => ({
-      lng: coordinate[0],
-      lat: coordinate[1],
-    }))
-    newCoordinates.pop()
-    const leafletPolygon = L.polygon(newCoordinates, { color: "red" })
-    return leafletPolygon
-    // this.intersectionLayers.addLayer(leafletPolygon)
-  }
-
-  updateIntersectionArea(intersectingPolygon: L.Layer) {
-    if (this.mergedIntersectionLayers.getLayers().length === 0) {
-      this.mergedIntersectionLayers.addLayer(intersectingPolygon)
-      return
-    }
-
-    // const polygons: turf.Feature<
-    // turf.Polygon,
-    // turf.Properties
-    // >[] = this.getPolygons(this.intersectionLayers)
-    // const polygonUnion = turf.union(...polygons)
-    // const areaOfUnionedIntersections = turf.area(polygonUnion)
-    // console.log(areaOfUnionedIntersections)
-    // this.setState({ intersectionArea: areaOfUnionedIntersections })
-    // this.mergedIntersectionLayers.clearLayers()
-    // if (
-    //   polygonUnion.geometry &&
-    //   polygonUnion.geometry.type === "MultiPolygon"
-    // ) {
-    //   let sumOfAreas = 0
-    //   const shapes: turf.Position[][][] = polygonUnion.geometry.coordinates
-    //   shapes.forEach((shape: turf.Position[][]) => {
-    //     const polygon = turf.polygon(shape)
-    //     const area = turf.area(polygon)
-    //     sumOfAreas += area
-    //   })
-    //   console.log(sumOfAreas)
-    // }
   }
 
   render() {
