@@ -55,9 +55,6 @@ export default class InfoPanel extends React.Component<
         <input
           className='info-panel__title-container__input'
           ref={this.titleInputRef}
-          autoFocus={
-            this.state.localOperation.title === this.props.defaultTitle
-          }
           type='text'
           placeholder='Name of operation'
           value={this.state.localOperation.title}

@@ -110,24 +110,27 @@ export default class Map extends React.Component<MapProps, MapState> {
   addLayerCreatedHandler(map: L.Map) {
     map.on(L.Draw.Event.CREATED, (event: any) => {
       this.drawnLayers.addLayer(event.layer)
-      this.checkForIntersections(event)
+      this.handleIntersections(event)
     })
   }
 
-  checkForIntersections(event: any) {
+  handleIntersections(event: any) {
     const shape: L.LatLng[] = event.layer.getLatLngs()[0]
     const turfIntersection = this.getIntersectionWithControlledAirspace(shape)
     if (turfIntersection !== null) {
-      this.drawIntersections(turfIntersection)
+      this.intersectionPolygons.push(turfIntersection)
+      const union = this.getUnionOfIntersections()
+      this.drawIntersections(union)
     }
   }
 
-  drawIntersections(
-    turfIntersection: turf.Feature<turf.Polygon, turf.Properties>
-  ) {
-    this.intersectionPolygons.push(turfIntersection)
+  getUnionOfIntersections() {
+    return turf.union(...this.intersectionPolygons)
+  }
 
-    const union = turf.union(...this.intersectionPolygons)
+  drawIntersections(
+    union: turf.Feature<turf.Polygon | turf.MultiPolygon, turf.Properties>
+  ) {
     if (!union.geometry || !union.geometry.coordinates) {
       return
     }
@@ -135,7 +138,7 @@ export default class Map extends React.Component<MapProps, MapState> {
     this.intersectionLayers.clearLayers()
     if (union.geometry.type === "Polygon") {
       this.drawIntersectionLayer(union.geometry.coordinates)
-    } else if (union.geometry.type == "MultiPolygon") {
+    } else if (union.geometry.type === "MultiPolygon") {
       union.geometry.coordinates.forEach((coordinates) =>
         this.drawIntersectionLayer(coordinates)
       )
