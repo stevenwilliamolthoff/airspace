@@ -117,7 +117,11 @@ export default class Map extends React.Component<MapProps, MapState> {
   handleIntersections(event: any) {
     const shape: L.LatLng[] = event.layer.getLatLngs()[0]
     const turfIntersection = this.getIntersectionWithControlledAirspace(shape)
-    if (turfIntersection !== null) {
+    if (turfIntersection === null) {
+      if (this.state.intersectionArea === null) {
+        this.setState({ intersectionArea: 0 })
+      }
+    } else {
       this.intersectionPolygons.push(turfIntersection)
       const union = this.getUnionOfIntersections()
       this.drawIntersections(union)
@@ -192,13 +196,14 @@ export default class Map extends React.Component<MapProps, MapState> {
   }
 
   render() {
+    const message =
+      this.state.intersectionArea !== null ? (
+        <Message intersectionArea={this.state.intersectionArea}></Message>
+      ) : null
     return (
       <div className='map'>
-        <Message intersectionArea={this.state.intersectionArea}></Message>
+        {message}
         <div id='map' />
-        <div className='map__button-group'>
-          <div className='map__button-group__button'>1</div>
-        </div>
       </div>
     )
   }
