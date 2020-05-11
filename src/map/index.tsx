@@ -121,7 +121,16 @@ export default class Map extends React.Component<MapProps, MapState> {
       this.intersectionPolygons.push(turfIntersection)
       const union = this.getUnionOfIntersections()
       this.drawIntersections(union)
+      const intersectionArea = this.getAreaOfIntersections(union, "miles")
+      this.setState({ intersectionArea })
     }
+  }
+
+  getAreaOfIntersections(
+    union: turf.Feature<turf.Polygon | turf.MultiPolygon, turf.Properties>,
+    unit: turf.Units
+  ) {
+    return turf.convertArea(turf.area(union), "meters", unit)
   }
 
   getUnionOfIntersections() {
