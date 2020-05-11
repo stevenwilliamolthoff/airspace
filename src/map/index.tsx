@@ -5,18 +5,9 @@ import "leaflet-draw"
 import "leaflet-draw/dist/leaflet.draw.css"
 import "leaflet/dist/leaflet.css"
 import ControlledAirspaceGeoJson from "../faa-controlled-airspace-DTW"
-import {
-  area,
-  centroid as getCentroid,
-  getCoord,
-  polygon,
-  intersect,
-  Feature,
-  Polygon,
-  Properties,
-  union,
-} from "@turf/turf"
+import * as turf from "@turf/turf"
 import Message from "./Message"
+import { URL_TEMPLATE, TILE_LAYER_OPTIONS } from "./MapConfig"
 
 interface MapProps {
   editingOperation: boolean
@@ -28,141 +19,161 @@ interface MapState {
 
 export default class Map extends React.Component<MapProps, MapState> {
   map: L.Map | null = null
-  drawnItemsFeatureGroup: L.FeatureGroup
-  intersectionLayerGroup: L.LayerGroup
-  drawControl: L.Control.Draw
 
-  controlledAirspacePolygon: Feature<Polygon>
+  // Leaflet layer groups
+  drawnLayers: L.FeatureGroup = L.featureGroup()
+  intersectionLayers: L.LayerGroup = L.layerGroup()
+  mergedIntersectionLayers: L.LayerGroup = L.layerGroup()
+
+  intersectionPolygons: turf.Feature<turf.Polygon, turf.Properties>[] = []
+
+  controlledAirspacePolygon: turf.Feature<
+    turf.Polygon
+  > = this.getControlledAirspacePolygon()
+
+  pane1: any
+
+  SHAPE_OPTIONS = {
+    color: "green",
+  }
+  DRAW_OPTIONS: L.Control.DrawConstructorOptions = {
+    position: "topright",
+    edit: {
+      featureGroup: this.drawnLayers,
+      edit: false,
+      remove: false,
+    },
+    draw: {
+      polygon: {
+        shapeOptions: this.SHAPE_OPTIONS,
+        allowIntersection: false,
+      },
+      rectangle: {
+        shapeOptions: this.SHAPE_OPTIONS,
+      },
+      circle: false,
+      polyline: false,
+      marker: false,
+      circlemarker: false,
+    },
+  }
+  drawControl: L.Control.Draw = new L.Control.Draw(this.DRAW_OPTIONS)
 
   constructor(props: MapProps) {
     super(props)
-
     this.state = {
       intersectionArea: null,
     }
-
-    this.controlledAirspacePolygon = polygon(
-      ControlledAirspaceGeoJson.features[0].geometry.coordinates
-    )
-
-    const shapeOptions = {
-      color: "green",
-    }
-    this.drawnItemsFeatureGroup = L.featureGroup()
-    this.intersectionLayerGroup = L.layerGroup()
-    this.drawControl = new L.Control.Draw({
-      position: "topright",
-      edit: {
-        featureGroup: this.drawnItemsFeatureGroup,
-        edit: false,
-        remove: false,
-      },
-      draw: {
-        polygon: {
-          shapeOptions,
-          allowIntersection: false,
-        },
-        rectangle: {
-          shapeOptions,
-        },
-        circle: false,
-        polyline: false,
-        marker: false,
-        circlemarker: false,
-      },
-    })
   }
 
   componentDidMount() {
     this.map = L.map("map")
-    this.addTileLayer(this.map)
-    this.addControlledAirspace(this.map)
+    this.getTileLayer().addTo(this.map)
+    this.getControlledAirspace().addTo(this.map)
     this.centerMapOnControlledAirspace(this.map)
-    this.addDrawingLayer(this.map)
-    this.addIntersectionCheck(this.map)
+    this.addLayerCreatedHandler(this.map)
+    this.map.addLayer(this.drawnLayers)
+    this.map.addLayer(this.intersectionLayers)
+    this.map.addLayer(this.mergedIntersectionLayers)
   }
 
   componentDidUpdate() {
     if (this.map && this.props.editingOperation) {
-      this.enableDrawing(this.map)
+      this.map.addControl(this.drawControl)
     }
   }
 
-  addTileLayer(map: L.Map) {
-    const urlTemplate =
-      "https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}"
-    const attribution =
-      'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>'
-    const accessToken =
-      "pk.eyJ1Ijoic3RldmVub2x0aG9mZiIsImEiOiJjazl2cHp4ZGYwMXR1M21xNmYxZDl0eHJrIn0.PjLPHhaTy_nG2F-JKG5QuQ"
-
-    L.tileLayer(urlTemplate, {
-      attribution,
-      maxZoom: 18,
-      id: "mapbox/streets-v11",
-      tileSize: 512,
-      zoomOffset: -1,
-      accessToken,
-    }).addTo(map)
+  getTileLayer() {
+    return L.tileLayer(URL_TEMPLATE, TILE_LAYER_OPTIONS)
   }
 
-  addControlledAirspace(map: L.Map) {
-    const controlledAirspaceStyle = { color: "rgba(255, 100, 100, .5)" }
-    L.geoJSON(ControlledAirspaceGeoJson, {
-      style: controlledAirspaceStyle,
-    }).addTo(map)
+  getControlledAirspace() {
+    return L.geoJSON(ControlledAirspaceGeoJson, {
+      style: { color: "rgba(255, 100, 100, .5)" },
+    })
+  }
+
+  getControlledAirspacePolygon() {
+    return turf.polygon(
+      ControlledAirspaceGeoJson.features[0].geometry.coordinates
+    )
   }
 
   centerMapOnControlledAirspace(map: L.Map) {
-    const centroid = getCentroid(ControlledAirspaceGeoJson)
-    const centroidCoordinates = getCoord(centroid)
+    const centroid = turf.centroid(ControlledAirspaceGeoJson)
+    const centroidCoordinates = turf.getCoord(centroid)
     const longitude = centroidCoordinates[0]
     const latitude = centroidCoordinates[1]
-
     map.setView([latitude, longitude], 13)
   }
 
-  addDrawingLayer(map: L.Map) {
+  addLayerCreatedHandler(map: L.Map) {
     map.on(L.Draw.Event.CREATED, (event: any) => {
-      this.drawnItemsFeatureGroup.addLayer(event.layer)
-      console.log(JSON.stringify(this.drawnItemsFeatureGroup.toGeoJSON()))
+      this.drawnLayers.addLayer(event.layer)
+      this.checkForIntersections(event)
     })
   }
 
-  enableDrawing(map: L.Map) {
-    map.addLayer(this.drawnItemsFeatureGroup)
-    map.addLayer(this.intersectionLayerGroup)
-    map.addControl(this.drawControl)
+  checkForIntersections(event: any) {
+    const shape: L.LatLng[] = event.layer.getLatLngs()[0]
+    const turfIntersection = this.getIntersectionWithControlledAirspace(shape)
+    if (turfIntersection !== null) {
+      this.drawIntersections(turfIntersection)
+    }
   }
 
-  addIntersectionCheck(map: L.Map) {
-    map.on(L.Draw.Event.CREATED, (event: any) => {
-      const shape: L.LatLng[] = event.layer.getLatLngs()[0]
-      const intersection: Feature<
-        Polygon,
-        Properties
-      > | null = this.getIntersectionWithControlledAirspace(shape)
-      if (intersection === null) {
-        this.setState({ intersectionArea: 0 })
-      } else {
-        const intersectingPolygon = intersection.geometry as Polygon
-        this.drawIntersection(intersectingPolygon)
-        this.updateIntersectionArea()
-      }
-    })
+  drawIntersections(
+    turfIntersection: turf.Feature<turf.Polygon, turf.Properties>
+  ) {
+    this.intersectionPolygons.push(turfIntersection)
+
+    const union = turf.union(...this.intersectionPolygons)
+    if (!union.geometry || !union.geometry.coordinates) {
+      return
+    }
+
+    this.intersectionLayers.clearLayers()
+    if (union.geometry.type === "Polygon") {
+      this.drawIntersectionLayer(union.geometry.coordinates)
+    } else if (union.geometry.type == "MultiPolygon") {
+      union.geometry.coordinates.forEach((coordinates) =>
+        this.drawIntersectionLayer(coordinates)
+      )
+    }
   }
 
-  private getIntersectionWithControlledAirspace(shape: L.LatLng[]) {
+  getLeafletCoordinates(turfCoordinates: turf.Position[][]) {
+    let newCoordinates = turfCoordinates[0].map(
+      (coordinate: turf.Position) => ({
+        lng: coordinate[0],
+        lat: coordinate[1],
+      })
+    )
+    newCoordinates.pop()
+    return newCoordinates
+  }
+
+  drawIntersectionLayer(turfCoordinates: turf.Position[][]) {
+    let newCoordinates = this.getLeafletCoordinates(turfCoordinates)
+    const leafletPolygon = L.polygon(newCoordinates, { color: "red" })
+    this.intersectionLayers.addLayer(leafletPolygon)
+  }
+
+  addLayerToIntersectionLayers(layer: L.Layer) {
+    this.intersectionLayers.addLayer(layer)
+  }
+
+  getIntersectionWithControlledAirspace(shape: L.LatLng[]) {
     const coordinates: number[][] = this.getTurfCoordinates(shape)
-    const newlyDrawnPolygon = polygon([coordinates])
-    const intersection: Feature<Polygon, Properties> | null = intersect(
+    const newlyDrawnPolygon = turf.polygon([coordinates])
+    const intersection = turf.intersect(
       newlyDrawnPolygon,
       this.controlledAirspacePolygon
     )
     return intersection
   }
 
-  private getTurfCoordinates(latLngs: L.LatLng[]): number[][] {
+  getTurfCoordinates(latLngs: L.LatLng[]): number[][] {
     let coordinates: number[][] = latLngs.map((latLng: L.LatLng) => [
       latLng.lng,
       latLng.lat,
@@ -172,35 +183,56 @@ export default class Map extends React.Component<MapProps, MapState> {
     return coordinates
   }
 
-  private drawIntersection(polygon: Polygon) {
-    const shape = polygon.coordinates[0]
-    let coordinates = shape.map((coordinate) => ({
-      lng: coordinate[0],
-      lat: coordinate[1],
-    }))
-    coordinates.pop()
-    const leafletPolygon = L.polygon(coordinates, { color: "#b00020" })
-    this.intersectionLayerGroup.addLayer(leafletPolygon)
-  }
-
-  private getPolygons(layerGroup: L.LayerGroup) {
-    let polygons: Feature<Polygon, Properties>[] = []
+  getPolygons(layerGroup: L.LayerGroup) {
+    let polygons: turf.Feature<turf.Polygon, turf.Properties>[] = []
     layerGroup.eachLayer((layer: any) => {
       const shape: L.LatLng[] = layer.getLatLngs()[0]
       const coordinates: number[][] = this.getTurfCoordinates(shape)
-      const newPolygon = polygon([coordinates])
+      const newPolygon = turf.polygon([coordinates])
       polygons.push(newPolygon)
     })
     return polygons
   }
 
-  private updateIntersectionArea() {
-    const polygons: Feature<Polygon, Properties>[] = this.getPolygons(
-      this.intersectionLayerGroup
-    )
-    const polygonUnion = union(...polygons)
-    const areaOfUnionedIntersections = area(polygonUnion)
-    this.setState({ intersectionArea: areaOfUnionedIntersections })
+  drawMergedIntersection(coordinates: turf.Position[][]) {
+    let newCoordinates = coordinates.map((coordinate: any) => ({
+      lng: coordinate[0],
+      lat: coordinate[1],
+    }))
+    newCoordinates.pop()
+    const leafletPolygon = L.polygon(newCoordinates, { color: "red" })
+    return leafletPolygon
+    // this.intersectionLayers.addLayer(leafletPolygon)
+  }
+
+  updateIntersectionArea(intersectingPolygon: L.Layer) {
+    if (this.mergedIntersectionLayers.getLayers().length === 0) {
+      this.mergedIntersectionLayers.addLayer(intersectingPolygon)
+      return
+    }
+
+    // const polygons: turf.Feature<
+    // turf.Polygon,
+    // turf.Properties
+    // >[] = this.getPolygons(this.intersectionLayers)
+    // const polygonUnion = turf.union(...polygons)
+    // const areaOfUnionedIntersections = turf.area(polygonUnion)
+    // console.log(areaOfUnionedIntersections)
+    // this.setState({ intersectionArea: areaOfUnionedIntersections })
+    // this.mergedIntersectionLayers.clearLayers()
+    // if (
+    //   polygonUnion.geometry &&
+    //   polygonUnion.geometry.type === "MultiPolygon"
+    // ) {
+    //   let sumOfAreas = 0
+    //   const shapes: turf.Position[][][] = polygonUnion.geometry.coordinates
+    //   shapes.forEach((shape: turf.Position[][]) => {
+    //     const polygon = turf.polygon(shape)
+    //     const area = turf.area(polygon)
+    //     sumOfAreas += area
+    //   })
+    //   console.log(sumOfAreas)
+    // }
   }
 
   render() {
@@ -208,6 +240,9 @@ export default class Map extends React.Component<MapProps, MapState> {
       <div className='map'>
         <Message intersectionArea={this.state.intersectionArea}></Message>
         <div id='map' />
+        <div className='map__button-group'>
+          <div className='map__button-group__button'>1</div>
+        </div>
       </div>
     )
   }

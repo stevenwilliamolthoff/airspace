@@ -10,6 +10,7 @@ interface OperationsState {
   operations: Operation[]
   editingOperation: boolean
   activeOperationId: number | null
+  activeOperation: Operation | null
 }
 
 export default class Operations extends React.Component<any, OperationsState> {
@@ -20,6 +21,7 @@ export default class Operations extends React.Component<any, OperationsState> {
       operations: [],
       editingOperation: false,
       activeOperationId: null,
+      activeOperation: null,
     }
   }
 
@@ -29,7 +31,6 @@ export default class Operations extends React.Component<any, OperationsState> {
   }
 
   async onNewOperationButtonClick() {
-    this.setState({ editingOperation: true })
     let operation: Partial<Operation> = {
       title: this.newOperationDefaultTitle,
     }
@@ -37,7 +38,11 @@ export default class Operations extends React.Component<any, OperationsState> {
       const response = await api.putOperation(operation)
       const newOperation: Operation = response.operation
       this.addOperation(newOperation)
-      this.setState({ activeOperationId: newOperation.id })
+      this.setState({
+        activeOperationId: newOperation.id,
+        activeOperation: newOperation,
+        editingOperation: true,
+      })
     } catch (error) {
       console.error("Failed to put new operation.")
     }
@@ -50,7 +55,6 @@ export default class Operations extends React.Component<any, OperationsState> {
   }
 
   async onOperationTitleChange(title: string) {
-    console.log(title)
     let updatedOperations = this.state.operations
     let activeOperation = updatedOperations.find(
       (operation) => operation.id === this.state.activeOperationId
@@ -68,11 +72,29 @@ export default class Operations extends React.Component<any, OperationsState> {
     }
   }
 
+  onListItemClick(operationId: number) {
+    this.setState({ activeOperationId: operationId })
+    const activeOperation = this.state.operations.find(
+      (operation) => operation.id === operationId
+    )
+    if (activeOperation) {
+      this.setState({
+        activeOperation,
+        editingOperation: true,
+      })
+    }
+  }
+
   render() {
     return (
       <div className='operations'>
         <div className='operations__list'>
-          <List operations={this.state.operations}></List>
+          <List
+            emitListItemClick={(operationId: number) =>
+              this.onListItemClick(operationId)
+            }
+            operations={this.state.operations}
+          ></List>
         </div>
         <div className='operations__dashboard'>
           <div className='operations__dashboard__toolbar'>
@@ -88,13 +110,14 @@ export default class Operations extends React.Component<any, OperationsState> {
           </div>
           <div className='operations__dashboard__map'>
             <Map editingOperation={this.state.editingOperation}></Map>
-            {this.state.editingOperation ? (
+            {this.state.editingOperation && this.state.activeOperation ? (
               <div className='operations__dashboard__map__info'>
                 <InfoPanel
                   emitTitleChange={(title: string) =>
                     this.onOperationTitleChange(title)
                   }
                   defaultTitle={this.newOperationDefaultTitle}
+                  operation={this.state.activeOperation}
                 ></InfoPanel>
               </div>
             ) : null}
