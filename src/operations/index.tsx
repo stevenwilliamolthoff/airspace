@@ -16,6 +16,7 @@ interface OperationsState {
 
 export default class Operations extends React.Component<any, OperationsState> {
   newOperationDefaultTitle = "Untitled Operation"
+
   constructor(props: any) {
     super(props)
     this.state = {
@@ -38,7 +39,7 @@ export default class Operations extends React.Component<any, OperationsState> {
     try {
       const response = await api.putOperation(operation)
       const newOperation: Operation = response.operation
-      this.addOperation(newOperation)
+      this.pushOperation(newOperation)
       this.setState({
         activeOperationId: newOperation.id,
         activeOperation: newOperation,
@@ -49,13 +50,13 @@ export default class Operations extends React.Component<any, OperationsState> {
     }
   }
 
-  addOperation(operation: Operation) {
+  pushOperation(operation: Operation) {
     let operations = this.state.operations
     operations = [operation].concat(operations)
     this.setState({ operations })
   }
 
-  async onOperationTitleChange(title: string) {
+  onOperationTitleChange(title: string) {
     if (!this.state.activeOperation) {
       return
     }
@@ -64,14 +65,12 @@ export default class Operations extends React.Component<any, OperationsState> {
     this.updateOperation(updatedOperation)
   }
 
-  async onOperationDateChange(date: Date, type: "start_at" | "end_at") {
+  onOperationDateChange(date: Date, type: "start_at" | "end_at") {
     if (!this.state.activeOperation) {
       return
     }
     let updatedOperation = this.state.activeOperation
-
     updatedOperation[type] = date.toISOString()
-
     this.updateOperation(updatedOperation)
   }
 
@@ -88,23 +87,25 @@ export default class Operations extends React.Component<any, OperationsState> {
     if (!this.state.activeOperation) {
       return
     }
-
     try {
       updatedActiveOperation = (await api.postOperation(updatedActiveOperation))
         .operation
       this.setState({ activeOperation: updatedActiveOperation })
-
-      let updatedOperations = this.state.operations.map((operation) => {
-        if (operation.id === this.state.activeOperationId) {
-          return updatedActiveOperation
-        }
-        return operation
-      })
-      updatedOperations = this.getSortedOperations(updatedOperations)
-      this.setState({ operations: updatedOperations })
+      this.updateOperationsList(updatedActiveOperation)
     } catch (error) {
       console.error("Failed to update title")
     }
+  }
+
+  updateOperationsList(updatedActiveOperation: Operation) {
+    let updatedOperations = this.state.operations.map((operation) => {
+      if (operation.id === this.state.activeOperationId) {
+        return updatedActiveOperation
+      }
+      return operation
+    })
+    updatedOperations = this.getSortedOperations(updatedOperations)
+    this.setState({ operations: updatedOperations })
   }
 
   getSortedOperations(operations: Operation[]) {
@@ -121,7 +122,7 @@ export default class Operations extends React.Component<any, OperationsState> {
     })
   }
 
-  async onListItemClick(operationId: number) {
+  async fetchOperation(operationId: number) {
     try {
       const { operation } = await api.getOperation(operationId)
       this.setState({
@@ -134,18 +135,56 @@ export default class Operations extends React.Component<any, OperationsState> {
     }
   }
 
+  getList(): JSX.Element {
+    return (
+      <List
+        activeOperationId={this.state.activeOperationId}
+        emitListItemClick={(operationId: number) =>
+          this.fetchOperation(operationId)
+        }
+        operations={this.state.operations}
+      ></List>
+    )
+  }
+
+  getMap(): JSX.Element {
+    return (
+      <div className='operations__dashboard__map'>
+        <Map
+          operation={this.state.activeOperation}
+          geoJson={this.state.activeOperation?.geo_json}
+          emitDraw={(geoJson) => this.onMapDraw(geoJson)}
+          editingOperation={this.state.editingOperation}
+        ></Map>
+        {this.getInfoPanel()}
+      </div>
+    )
+  }
+
+  getInfoPanel(): JSX.Element | null {
+    if (!this.state.editingOperation || !this.state.activeOperation) {
+      return null
+    }
+    return (
+      <div className='operations__dashboard__map__info'>
+        <InfoPanel
+          emitTitleChange={(title: string) =>
+            this.onOperationTitleChange(title)
+          }
+          emitDateChange={(date, type) =>
+            this.onOperationDateChange(date, type)
+          }
+          defaultTitle={this.newOperationDefaultTitle}
+          operation={this.state.activeOperation}
+        ></InfoPanel>
+      </div>
+    )
+  }
+
   render() {
     return (
       <div className='operations'>
-        <div className='operations__list'>
-          <List
-            activeOperationId={this.state.activeOperationId}
-            emitListItemClick={(operationId: number) =>
-              this.onListItemClick(operationId)
-            }
-            operations={this.state.operations}
-          ></List>
-        </div>
+        <div className='operations__list'>{this.getList()}</div>
         <div className='operations__dashboard'>
           <div className='operations__dashboard__toolbar'>
             <div className='operations__dashboard__toolbar__search'>
@@ -158,28 +197,7 @@ export default class Operations extends React.Component<any, OperationsState> {
               + New Operation
             </div>
           </div>
-          <div className='operations__dashboard__map'>
-            <Map
-              operation={this.state.activeOperation}
-              geoJson={this.state.activeOperation?.geo_json}
-              emitDraw={(geoJson) => this.onMapDraw(geoJson)}
-              editingOperation={this.state.editingOperation}
-            ></Map>
-            {this.state.editingOperation && this.state.activeOperation ? (
-              <div className='operations__dashboard__map__info'>
-                <InfoPanel
-                  emitTitleChange={(title: string) =>
-                    this.onOperationTitleChange(title)
-                  }
-                  emitDateChange={(date, type) =>
-                    this.onOperationDateChange(date, type)
-                  }
-                  defaultTitle={this.newOperationDefaultTitle}
-                  operation={this.state.activeOperation}
-                ></InfoPanel>
-              </div>
-            ) : null}
-          </div>
+          {this.getMap()}
         </div>
       </div>
     )
