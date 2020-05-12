@@ -6,6 +6,7 @@ import moment from "moment"
 interface ListProps {
   operations: Operation[]
   emitListItemClick: Function
+  activeOperationId: number | null
 }
 
 interface ListState {
@@ -16,7 +17,15 @@ export default class List extends React.Component<ListProps, ListState> {
   constructor(props: ListProps) {
     super(props)
     this.state = {
-      activeOperationId: null,
+      activeOperationId: this.props.activeOperationId
+        ? this.props.activeOperationId
+        : null,
+    }
+  }
+
+  componentDidUpdate(prevProps: ListProps) {
+    if (prevProps.activeOperationId !== this.props.activeOperationId) {
+      this.setState({ activeOperationId: this.props.activeOperationId })
     }
   }
 

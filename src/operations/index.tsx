@@ -139,6 +139,7 @@ export default class Operations extends React.Component<any, OperationsState> {
       <div className='operations'>
         <div className='operations__list'>
           <List
+            activeOperationId={this.state.activeOperationId}
             emitListItemClick={(operationId: number) =>
               this.onListItemClick(operationId)
             }
