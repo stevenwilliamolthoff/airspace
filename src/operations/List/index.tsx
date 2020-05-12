@@ -7,9 +7,21 @@ interface ListProps {
   emitListItemClick: Function
 }
 
-export default class List extends React.Component<ListProps, any> {
+interface ListState {
+  activeOperationId: number | null
+}
+
+export default class List extends React.Component<ListProps, ListState> {
+  constructor(props: ListProps) {
+    super(props)
+    this.state = {
+      activeOperationId: null,
+    }
+  }
+
   onListItemClick(operationId: number) {
     this.props.emitListItemClick(operationId)
+    this.setState({ activeOperationId: operationId })
   }
 
   render() {
@@ -19,7 +31,12 @@ export default class List extends React.Component<ListProps, any> {
     const listItems = this.props.operations.map((operation) => (
       <div
         key={operation.id}
-        className='list__item'
+        className={[
+          "list__item",
+          operation.id === this.state.activeOperationId
+            ? "list__item--active"
+            : null,
+        ].join(" ")}
         onClick={() => this.onListItemClick(operation.id)}
       >
         {operation.title}

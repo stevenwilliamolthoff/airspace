@@ -1,8 +1,8 @@
 .list {
   background-color: #2f3942;
-  box-shadow: 4px 0px 8px rgba(0, 0, 0, 0.33);
   width: 100%;
   color: white;
+  user-select: none;
 }
 
 .list--empty {
@@ -12,8 +12,20 @@
 }
 
 .list__item {
-  border-radius: 4px;
-  border: 1px solid #171c21;
-  margin: 8px;
-  padding: 8px;
+  border-bottom: 1px solid #171c21;
+  padding: 16px 12px;
+  font-weight: 500;
+}
+
+.list__item:hover {
+  background-color: #272f36;
+  cursor: pointer;
+}
+
+.list__item:active {
+  background-color: #181d22;
+}
+
+.list__item--active {
+  background-color: #181d22;
 }
