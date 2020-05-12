@@ -55,7 +55,6 @@ export default class Operations extends React.Component<any, OperationsState> {
   }
 
   async onOperationTitleChange(title: string) {
-    console.log("Title change", title)
     if (!this.state.activeOperation) {
       return
     }
@@ -93,14 +92,11 @@ export default class Operations extends React.Component<any, OperationsState> {
       return operation
     })
     this.setState({ operations: updatedOperations })
-    console.log(this.state.operations)
   }
 
   async onListItemClick(operationId: number) {
     try {
-      // console.log(operationId)
       const { operation } = await api.getOperation(operationId)
-      console.log("Clicked on ", operation.title)
       this.setState({
         activeOperationId: operationId,
         activeOperation: operation,
@@ -136,6 +132,7 @@ export default class Operations extends React.Component<any, OperationsState> {
           </div>
           <div className='operations__dashboard__map'>
             <Map
+              operation={this.state.activeOperation}
               geoJson={this.state.activeOperation?.geo_json}
               emitDraw={(geoJson) => this.onMapDraw(geoJson)}
               editingOperation={this.state.editingOperation}

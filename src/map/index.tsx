@@ -8,12 +8,14 @@ import ControlledAirspaceGeoJson from "../faa-controlled-airspace-DTW"
 import * as turf from "@turf/turf"
 import Message from "./Message"
 import { URL_TEMPLATE, TILE_LAYER_OPTIONS } from "./MapConfig"
+import { Operation } from "../interfaces/operations"
 
 interface EmitDraw {
   (geoJson: any): void
 }
 
 interface MapProps {
+  operation: Operation | null
   editingOperation: boolean
   emitDraw: EmitDraw
   geoJson: any
@@ -83,12 +85,19 @@ export default class Map extends React.Component<MapProps, MapState> {
     this.map.addLayer(this.mergedIntersectionLayers)
   }
 
-  componentDidUpdate(newProps: MapProps) {
+  componentDidUpdate(prevProps: MapProps) {
     if (this.map && this.props.editingOperation) {
       this.map.addControl(this.drawControl)
     }
-    if (newProps.geoJson !== this.props.geoJson) {
-      // console.log(newProps.geoJson)
+    if (
+      (!prevProps.operation && this.props.operation) ||
+      prevProps.operation?.id !== this.props.operation?.id
+    ) {
+      console.log("Load")
+      this.intersectionLayers.clearLayers()
+      this.addDrawnLayers()
+      this.setState({ intersectionArea: null })
+      this.addIntersectionLayers()
     }
   }
 
@@ -97,8 +106,17 @@ export default class Map extends React.Component<MapProps, MapState> {
       return
     }
     this.drawnLayers.clearLayers()
-    // L.geoJSON(this.props)
+    const geoJsonFeatureGroup: L.FeatureGroup = L.geoJSON(
+      this.props.operation?.geo_json,
+      {
+        style: this.SHAPE_OPTIONS,
+      }
+    )
+    this.drawnLayers = geoJsonFeatureGroup
+    this.drawnLayers.addTo(this.map)
   }
+
+  addIntersectionLayers() {}
 
   getTileLayer() {
     return L.tileLayer(URL_TEMPLATE, TILE_LAYER_OPTIONS)

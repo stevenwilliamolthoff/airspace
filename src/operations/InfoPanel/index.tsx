@@ -27,7 +27,6 @@ export default class InfoPanel extends React.Component<
     this.titleInputRef = React.createRef()
   }
   componentDidUpdate(prevProps: InfoPanelProps) {
-    console.log(this.props.operation.id)
     if (prevProps.operation.id !== this.props.operation.id) {
       this.setState({ title: this.props.operation.title })
     }
