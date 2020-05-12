@@ -55,33 +55,59 @@ export default class Operations extends React.Component<any, OperationsState> {
   }
 
   async onOperationTitleChange(title: string) {
-    let updatedOperations = this.state.operations
-    let activeOperation = updatedOperations.find(
-      (operation) => operation.id === this.state.activeOperationId
-    )
-    if (!activeOperation) {
+    console.log("Title change", title)
+    if (!this.state.activeOperation) {
+      return
+    }
+    let updatedOperation = this.state.activeOperation
+    updatedOperation.title = title
+    this.updateOperation(updatedOperation)
+  }
+
+  onMapDraw(geoJson: L.GeoJSON) {
+    if (!this.state.activeOperation) {
+      return
+    }
+    let updatedOperation = this.state.activeOperation
+    updatedOperation.geo_json = geoJson
+    this.updateOperation(updatedOperation)
+  }
+
+  async updateOperation(updatedActiveOperation: Operation) {
+    if (!this.state.activeOperation) {
       return
     }
 
-    activeOperation.title = title
     try {
-      await api.postOperation(activeOperation)
-      this.setState({ operations: updatedOperations })
+      await api.postOperation(updatedActiveOperation)
     } catch (error) {
       console.error("Failed to update title")
     }
+
+    this.setState({ activeOperation: updatedActiveOperation })
+
+    let updatedOperations = this.state.operations.map((operation) => {
+      if (operation.id === this.state.activeOperationId) {
+        return updatedActiveOperation
+      }
+      return operation
+    })
+    this.setState({ operations: updatedOperations })
+    console.log(this.state.operations)
   }
 
-  onListItemClick(operationId: number) {
-    this.setState({ activeOperationId: operationId })
-    const activeOperation = this.state.operations.find(
-      (operation) => operation.id === operationId
-    )
-    if (activeOperation) {
+  async onListItemClick(operationId: number) {
+    try {
+      // console.log(operationId)
+      const { operation } = await api.getOperation(operationId)
+      console.log("Clicked on ", operation.title)
       this.setState({
-        activeOperation,
+        activeOperationId: operationId,
+        activeOperation: operation,
         editingOperation: true,
       })
+    } catch (error) {
+      console.error("Failed to get operation")
     }
   }
 
@@ -109,7 +135,11 @@ export default class Operations extends React.Component<any, OperationsState> {
             </div>
           </div>
           <div className='operations__dashboard__map'>
-            <Map editingOperation={this.state.editingOperation}></Map>
+            <Map
+              geoJson={this.state.activeOperation?.geo_json}
+              emitDraw={(geoJson) => this.onMapDraw(geoJson)}
+              editingOperation={this.state.editingOperation}
+            ></Map>
             {this.state.editingOperation && this.state.activeOperation ? (
               <div className='operations__dashboard__map__info'>
                 <InfoPanel

@@ -9,7 +9,6 @@ interface InfoPanelProps {
 }
 
 interface InfoPanelState {
-  localOperation: Operation
   title: string
   editing: boolean
 }
@@ -22,24 +21,24 @@ export default class InfoPanel extends React.Component<
   constructor(props: InfoPanelProps) {
     super(props)
     this.state = {
-      localOperation: this.props.operation,
-      title: this.props.defaultTitle,
+      title: this.props.operation.title,
       editing: true,
     }
     this.titleInputRef = React.createRef()
   }
-  componentWillReceiveProps(newProps: InfoPanelProps) {
-    this.setState({ localOperation: newProps.operation })
+  componentDidUpdate(prevProps: InfoPanelProps) {
+    console.log(this.props.operation.id)
+    if (prevProps.operation.id !== this.props.operation.id) {
+      this.setState({ title: this.props.operation.title })
+    }
   }
   onTitleChange(event: any) {
-    let updatedOperation = this.state.localOperation
-    updatedOperation.title = event.target.value
-    this.setState({ localOperation: updatedOperation })
+    this.setState({ title: event.target.value })
   }
   onTitleBlur() {
     if (this.state.title.length > 0) {
       this.setState({ editing: false })
-      this.props.emitTitleChange(this.state.localOperation.title)
+      this.props.emitTitleChange(this.state.title)
     } else {
       if (this.titleInputRef !== null) {
         this.titleInputRef.current.focus()
@@ -57,7 +56,7 @@ export default class InfoPanel extends React.Component<
           ref={this.titleInputRef}
           type='text'
           placeholder='Name of operation'
-          value={this.state.localOperation.title}
+          value={this.state.title}
           onChange={(event) => this.onTitleChange(event)}
           onBlur={() => this.onTitleBlur()}
         ></input>
@@ -68,7 +67,7 @@ export default class InfoPanel extends React.Component<
           className='info-panel__title-container__title'
           onClick={() => this.onTitleClick()}
         >
-          {this.state.localOperation.title}
+          {this.state.title}
         </div>
       )
     }

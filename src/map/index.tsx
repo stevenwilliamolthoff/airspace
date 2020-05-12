@@ -9,8 +9,14 @@ import * as turf from "@turf/turf"
 import Message from "./Message"
 import { URL_TEMPLATE, TILE_LAYER_OPTIONS } from "./MapConfig"
 
+interface EmitDraw {
+  (geoJson: any): void
+}
+
 interface MapProps {
   editingOperation: boolean
+  emitDraw: EmitDraw
+  geoJson: any
 }
 
 interface MapState {
@@ -77,10 +83,21 @@ export default class Map extends React.Component<MapProps, MapState> {
     this.map.addLayer(this.mergedIntersectionLayers)
   }
 
-  componentDidUpdate() {
+  componentDidUpdate(newProps: MapProps) {
     if (this.map && this.props.editingOperation) {
       this.map.addControl(this.drawControl)
     }
+    if (newProps.geoJson !== this.props.geoJson) {
+      // console.log(newProps.geoJson)
+    }
+  }
+
+  addDrawnLayers() {
+    if (!this.map) {
+      return
+    }
+    this.drawnLayers.clearLayers()
+    // L.geoJSON(this.props)
   }
 
   getTileLayer() {
@@ -111,6 +128,8 @@ export default class Map extends React.Component<MapProps, MapState> {
     map.on(L.Draw.Event.CREATED, (event: any) => {
       this.drawnLayers.addLayer(event.layer)
       this.handleIntersections(event)
+
+      this.props.emitDraw(this.drawnLayers.toGeoJSON())
     })
   }
 
