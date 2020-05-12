@@ -149,7 +149,7 @@ export default class Operations extends React.Component<any, OperationsState> {
         <div className='operations__dashboard'>
           <div className='operations__dashboard__toolbar'>
             <div className='operations__dashboard__toolbar__search'>
-              Search Location by name or coordinates
+              OPERATIONS
             </div>
             <div
               className='operations__dashboard__toolbar__new-operation-button'
