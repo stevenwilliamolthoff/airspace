@@ -10,13 +10,9 @@ import Message from "./Message"
 import { URL_TEMPLATE, TILE_LAYER_OPTIONS } from "./MapConfig"
 import { Operation } from "../interfaces/operations"
 
-interface EmitDraw {
-  (geoJson: any): void
-}
-
 interface MapProps {
   operation: Operation | null
-  editingOperation: boolean
+  inEditMode: boolean
   emitDraw: EmitDraw
   geoJson: any
 }
@@ -25,21 +21,22 @@ interface MapState {
   intersectionArea: number | null
 }
 
+interface EmitDraw {
+  (geoJson: any): void
+}
+
 export default class Map extends React.Component<MapProps, MapState> {
   map: L.Map | null = null
 
   // Leaflet layer groups
   drawnLayers: L.FeatureGroup = L.featureGroup()
   intersectionLayers: L.LayerGroup = L.layerGroup()
-  mergedIntersectionLayers: L.LayerGroup = L.layerGroup()
 
   intersectionPolygons: turf.Feature<turf.Polygon, turf.Properties>[] = []
 
   controlledAirspacePolygon: turf.Feature<
     turf.Polygon
   > = this.getControlledAirspacePolygon()
-
-  pane1: any
 
   SHAPE_OPTIONS = {
     color: "green",
@@ -82,22 +79,21 @@ export default class Map extends React.Component<MapProps, MapState> {
     this.addLayerCreatedHandler(this.map)
     this.map.addLayer(this.drawnLayers)
     this.map.addLayer(this.intersectionLayers)
-    this.map.addLayer(this.mergedIntersectionLayers)
   }
 
   componentDidUpdate(prevProps: MapProps) {
-    if (this.map && this.props.editingOperation) {
+    if (this.map && this.props.inEditMode) {
       this.map.addControl(this.drawControl)
     }
-    if (
-      (!prevProps.operation && this.props.operation) ||
+    const openingFirstOperation = !prevProps.operation && this.props.operation
+    const openingDifferentOperation =
       prevProps.operation?.id !== this.props.operation?.id
-    ) {
-      this.reloadOperation()
+    if (openingFirstOperation || openingDifferentOperation) {
+      this.loadOperation()
     }
   }
 
-  reloadOperation() {
+  loadOperation() {
     this.drawnLayers.clearLayers()
     this.intersectionLayers.clearLayers()
     this.intersectionPolygons = []
@@ -241,14 +237,17 @@ export default class Map extends React.Component<MapProps, MapState> {
     return coordinates
   }
 
+  getMessage(): JSX.Element | null {
+    if (!this.state.intersectionArea) {
+      return null
+    }
+    return <Message intersectionArea={this.state.intersectionArea}></Message>
+  }
+
   render() {
-    const message =
-      this.state.intersectionArea !== null ? (
-        <Message intersectionArea={this.state.intersectionArea}></Message>
-      ) : null
     return (
       <div className='map'>
-        {message}
+        {this.getMessage()}
         <div id='map' />
       </div>
     )

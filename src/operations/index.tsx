@@ -9,7 +9,7 @@ import moment from "moment"
 
 interface OperationsState {
   operations: Operation[]
-  editingOperation: boolean
+  inEditMode: boolean
   activeOperationId: number | null
   activeOperation: Operation | null
 }
@@ -21,7 +21,7 @@ export default class Operations extends React.Component<any, OperationsState> {
     super(props)
     this.state = {
       operations: [],
-      editingOperation: false,
+      inEditMode: false,
       activeOperationId: null,
       activeOperation: null,
     }
@@ -43,7 +43,7 @@ export default class Operations extends React.Component<any, OperationsState> {
       this.setState({
         activeOperationId: newOperation.id,
         activeOperation: newOperation,
-        editingOperation: true,
+        inEditMode: true,
       })
     } catch (error) {
       console.error("Failed to put new operation.")
@@ -128,7 +128,7 @@ export default class Operations extends React.Component<any, OperationsState> {
       this.setState({
         activeOperationId: operationId,
         activeOperation: operation,
-        editingOperation: true,
+        inEditMode: true,
       })
     } catch (error) {
       console.error("Failed to get operation")
@@ -154,7 +154,7 @@ export default class Operations extends React.Component<any, OperationsState> {
           operation={this.state.activeOperation}
           geoJson={this.state.activeOperation?.geo_json}
           emitDraw={(geoJson) => this.onMapDraw(geoJson)}
-          editingOperation={this.state.editingOperation}
+          inEditMode={this.state.inEditMode}
         ></Map>
         {this.getInfoPanel()}
       </div>
@@ -162,7 +162,7 @@ export default class Operations extends React.Component<any, OperationsState> {
   }
 
   getInfoPanel(): JSX.Element | null {
-    if (!this.state.editingOperation || !this.state.activeOperation) {
+    if (!this.state.inEditMode || !this.state.activeOperation) {
       return null
     }
     return (
