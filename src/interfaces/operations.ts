@@ -4,4 +4,5 @@ export interface Operation {
   geo_json?: any
   start_at: string
   end_at: string
+  updated_at: string
 }

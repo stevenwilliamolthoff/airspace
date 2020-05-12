@@ -1,6 +1,7 @@
 import React from "react"
 import "./list.scss"
 import { Operation } from "../../interfaces/operations"
+import moment from "moment"
 
 interface ListProps {
   operations: Operation[]
@@ -24,6 +25,13 @@ export default class List extends React.Component<ListProps, ListState> {
     this.setState({ activeOperationId: operationId })
   }
 
+  getFormattedSubtitle(operation: Operation) {
+    const format = "DD MMM HH:mm"
+    return `${moment(operation.start_at).format(format)} - ${moment(
+      operation.end_at
+    ).format(format)}`
+  }
+
   render() {
     if (this.props.operations.length === 0) {
       return <div className='list list--empty'>No operations</div>
@@ -40,6 +48,9 @@ export default class List extends React.Component<ListProps, ListState> {
         onClick={() => this.onListItemClick(operation.id)}
       >
         {operation.title}
+        <div className='list__item__subtitle'>
+          {this.getFormattedSubtitle(operation)}
+        </div>
       </div>
     ))
     return <div className='list'>{listItems}</div>

@@ -5,6 +5,7 @@ import List from "./List"
 import InfoPanel from "./InfoPanel"
 import api from "../api"
 import { Operation } from "../interfaces/operations"
+import moment from "moment"
 
 interface OperationsState {
   operations: Operation[]
@@ -89,20 +90,35 @@ export default class Operations extends React.Component<any, OperationsState> {
     }
 
     try {
-      await api.postOperation(updatedActiveOperation)
+      updatedActiveOperation = (await api.postOperation(updatedActiveOperation))
+        .operation
+      this.setState({ activeOperation: updatedActiveOperation })
+
+      let updatedOperations = this.state.operations.map((operation) => {
+        if (operation.id === this.state.activeOperationId) {
+          return updatedActiveOperation
+        }
+        return operation
+      })
+      updatedOperations = this.getSortedOperations(updatedOperations)
+      this.setState({ operations: updatedOperations })
     } catch (error) {
       console.error("Failed to update title")
     }
+  }
 
-    this.setState({ activeOperation: updatedActiveOperation })
-
-    let updatedOperations = this.state.operations.map((operation) => {
-      if (operation.id === this.state.activeOperationId) {
-        return updatedActiveOperation
+  getSortedOperations(operations: Operation[]) {
+    return operations.sort((operationA, operationB) => {
+      const momentA = moment(operationA.updated_at)
+      const momentB = moment(operationB.updated_at)
+      if (momentA.isAfter(momentB)) {
+        return -1
+      } else if (momentA.isBefore(momentB)) {
+        return 1
+      } else {
+        return 0
       }
-      return operation
     })
-    this.setState({ operations: updatedOperations })
   }
 
   async onListItemClick(operationId: number) {
