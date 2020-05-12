@@ -63,6 +63,17 @@ export default class Operations extends React.Component<any, OperationsState> {
     this.updateOperation(updatedOperation)
   }
 
+  async onOperationDateChange(date: Date, type: "start_at" | "end_at") {
+    if (!this.state.activeOperation) {
+      return
+    }
+    let updatedOperation = this.state.activeOperation
+
+    updatedOperation[type] = date.toISOString()
+
+    this.updateOperation(updatedOperation)
+  }
+
   onMapDraw(geoJson: L.GeoJSON) {
     if (!this.state.activeOperation) {
       return
@@ -142,6 +153,9 @@ export default class Operations extends React.Component<any, OperationsState> {
                 <InfoPanel
                   emitTitleChange={(title: string) =>
                     this.onOperationTitleChange(title)
+                  }
+                  emitDateChange={(date, type) =>
+                    this.onOperationDateChange(date, type)
                   }
                   defaultTitle={this.newOperationDefaultTitle}
                   operation={this.state.activeOperation}

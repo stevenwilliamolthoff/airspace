@@ -93,14 +93,17 @@ export default class Map extends React.Component<MapProps, MapState> {
       (!prevProps.operation && this.props.operation) ||
       prevProps.operation?.id !== this.props.operation?.id
     ) {
-      console.log("Load")
-      this.drawnLayers.clearLayers()
-      this.intersectionLayers.clearLayers()
-      this.intersectionPolygons = []
-      this.addDrawnLayers()
-      this.setState({ intersectionArea: null })
-      this.addIntersectionLayers()
+      this.reloadOperation()
     }
+  }
+
+  reloadOperation() {
+    this.drawnLayers.clearLayers()
+    this.intersectionLayers.clearLayers()
+    this.intersectionPolygons = []
+    this.addDrawnLayers()
+    this.setState({ intersectionArea: null })
+    this.addIntersectionLayers()
   }
 
   addDrawnLayers() {
