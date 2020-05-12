@@ -94,7 +94,9 @@ export default class Map extends React.Component<MapProps, MapState> {
       prevProps.operation?.id !== this.props.operation?.id
     ) {
       console.log("Load")
+      this.drawnLayers.clearLayers()
       this.intersectionLayers.clearLayers()
+      this.intersectionPolygons = []
       this.addDrawnLayers()
       this.setState({ intersectionArea: null })
       this.addIntersectionLayers()
@@ -105,7 +107,6 @@ export default class Map extends React.Component<MapProps, MapState> {
     if (!this.map) {
       return
     }
-    this.drawnLayers.clearLayers()
     const geoJsonFeatureGroup: L.FeatureGroup = L.geoJSON(
       this.props.operation?.geo_json,
       {
@@ -116,7 +117,12 @@ export default class Map extends React.Component<MapProps, MapState> {
     this.drawnLayers.addTo(this.map)
   }
 
-  addIntersectionLayers() {}
+  addIntersectionLayers() {
+    this.drawnLayers.eachLayer((layer: any) => {
+      const shape = layer.getLatLngs()[0]
+      this.handleIntersections(shape)
+    })
+  }
 
   getTileLayer() {
     return L.tileLayer(URL_TEMPLATE, TILE_LAYER_OPTIONS)
@@ -145,14 +151,14 @@ export default class Map extends React.Component<MapProps, MapState> {
   addLayerCreatedHandler(map: L.Map) {
     map.on(L.Draw.Event.CREATED, (event: any) => {
       this.drawnLayers.addLayer(event.layer)
-      this.handleIntersections(event)
+      const shape: L.LatLng[] = event.layer.getLatLngs()[0]
+      this.handleIntersections(shape)
 
       this.props.emitDraw(this.drawnLayers.toGeoJSON())
     })
   }
 
-  handleIntersections(event: any) {
-    const shape: L.LatLng[] = event.layer.getLatLngs()[0]
+  handleIntersections(shape: L.LatLng[]) {
     const turfIntersection = this.getIntersectionWithControlledAirspace(shape)
     if (turfIntersection === null) {
       if (this.state.intersectionArea === null) {
