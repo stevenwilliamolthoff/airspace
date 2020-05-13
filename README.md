@@ -8,7 +8,9 @@
 
 1. Clone the [back-end](https://github.com/stevenwilliamolthoff/airspace-backend).
 
-2. `docker-compose up`
+2. cd `airspace-backend`
+
+3. `docker-compose up`
 
 ### Start the Front-End
 
