@@ -1,5 +1,5 @@
 import React from "react"
-import Map from "../Map"
+import Map from "../map"
 import "./operations.scss"
 import List from "./List"
 import InfoPanel from "./InfoPanel"
