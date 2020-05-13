@@ -98,7 +98,7 @@ export default class Map extends React.Component<MapProps, MapState> {
     this.intersectionLayers.clearLayers()
     this.intersectionPolygons = []
     this.addDrawnLayers()
-    this.setState({ intersectionArea: null }, this.addIntersectionLayers)
+    this.addIntersectionLayers()
   }
 
   addDrawnLayers() {
@@ -116,10 +116,16 @@ export default class Map extends React.Component<MapProps, MapState> {
   }
 
   addIntersectionLayers() {
+    if (this.drawnLayers.getLayers().length === 0) {
+      this.setState({ intersectionArea: null })
+      return
+    }
+    let intersectionArea = 0
     this.drawnLayers.eachLayer((layer: any) => {
       const shape = layer.getLatLngs()[0]
-      this.handleIntersections(shape)
+      intersectionArea += this.handleIntersections(shape)
     })
+    this.setState({ intersectionArea })
   }
 
   getTileLayer() {
@@ -150,25 +156,29 @@ export default class Map extends React.Component<MapProps, MapState> {
     map.on(L.Draw.Event.CREATED, (event: any) => {
       this.drawnLayers.addLayer(event.layer)
       const shape: L.LatLng[] = event.layer.getLatLngs()[0]
-      this.handleIntersections(shape)
+      const intersectionArea = this.handleIntersections(shape)
+      this.setState({ intersectionArea })
 
       this.props.emitDraw(this.drawnLayers.toGeoJSON())
     })
   }
 
-  handleIntersections(shape: L.LatLng[]) {
+  handleIntersections(shape: L.LatLng[]): number {
+    let intersectionArea = 0
     const turfIntersection = this.getIntersectionWithControlledAirspace(shape)
     if (turfIntersection === null) {
       if (this.state.intersectionArea === null) {
-        this.setState({ intersectionArea: 0 })
+        intersectionArea = 0
+      } else {
+        intersectionArea = this.state.intersectionArea
       }
     } else {
       this.intersectionPolygons.push(turfIntersection)
       const union = this.getUnionOfIntersections()
       this.drawIntersections(union)
-      const intersectionArea = this.getAreaOfIntersections(union, "miles")
-      this.setState({ intersectionArea })
+      intersectionArea = this.getAreaOfIntersections(union, "miles")
     }
+    return intersectionArea
   }
 
   getAreaOfIntersections(
