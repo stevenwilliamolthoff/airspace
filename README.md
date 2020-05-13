@@ -66,7 +66,7 @@ There is a single data model: operations. An operation is a plan for a flight. T
 
 ### The API
 
-In terms of code, my approach simply prioritizes the ease of writing and using a RESTful API. I take full advantage of typed interfaces so very little code is needed. I am using TypeORM, which is a great TypeScript ORM. Between the routes (`src/routes/operations.ts`) and the model (`src/entities/Operations.ts`), 
+In terms of code, my approach simply prioritizes the ease of writing and using a RESTful API. I take full advantage of typed interfaces so very little code is needed. I am using TypeORM, which is a great TypeScript ORM. Operations are handled by a routes file (`src/routes/operations.ts`) and a model file (`src/entities/Operations.ts`). This code is nearly all boilerplate.
 
 There are four endpoints, each of which do exactly what is expected:
 
