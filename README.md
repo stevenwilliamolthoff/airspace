@@ -38,7 +38,7 @@ To create a new operation, click the button labelled "New Operation". A panel on
 
 To begin drawing the shapes for a flight, click on the drawing buttons. These buttons appear near the top-left edge of the right panel. If a drawn shape intersects with controlled airspace, the intersection is displayed in a bright red. Contiguous intersections are automatically merged.
 
-After drawing flight shapes, a mesage will be displayed at the top of the map indicating whether the flight will be accepted or rejected, along with the number of squared miles of intersection with controlled airspace.
+After drawing flight shapes, a message will be displayed at the top of the map indicating whether the flight will be accepted or rejected, along with the number of square miles of intersection with controlled airspace.
 
 #### Edit an Operation
 
