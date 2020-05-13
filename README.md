@@ -16,11 +16,13 @@
 
 1. Clone the front-end (this repo).
 
-2. `npm i`
+2. cd `airspace`
 
-3. `npm run start`
+3. `npm i`
 
-4. Open `localhost:3000`
+4. `npm run start`
+
+5. Open `localhost:3000`
 
 ## Approach
 
