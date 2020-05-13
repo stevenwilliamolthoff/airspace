@@ -238,7 +238,7 @@ export default class Map extends React.Component<MapProps, MapState> {
   }
 
   getMessage(): JSX.Element | null {
-    if (!this.state.intersectionArea) {
+    if (this.state.intersectionArea === null) {
       return null
     }
     return <Message intersectionArea={this.state.intersectionArea}></Message>
