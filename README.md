@@ -51,4 +51,8 @@ There is a single data model: operations. An operation is a plan for a flight. T
 ## Ideas
 
 - Handle arbitrary number of controlled airspace areas
-- Ability to tag/label operations
+- View other scheduled flights in the Airspace Link system
+- Map overlay: residential zones
+- Ability to scroll through time to see how zones on the map change throughout the day
+- User inputs destinations and a route is suggested
+- Show land elevation
