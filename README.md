@@ -8,7 +8,7 @@
 
 1. Clone the [back-end](https://github.com/stevenwilliamolthoff/airspace-backend).
 
-2. cd `airspace-backend`
+2. `cd airspace-backend`
 
 3. `docker-compose up`
 
@@ -16,7 +16,7 @@
 
 1. Clone the front-end (this repo).
 
-2. cd `airspace`
+2. `cd airspace`
 
 3. `npm i`
 
