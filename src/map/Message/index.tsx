@@ -20,20 +20,19 @@ export default class Message extends React.Component<MessageProps, any> {
   render() {
     if (this.props.intersectionArea === null) {
       return null
-    } else {
-      const approved = this.props.intersectionArea === 0
-      const messageClasses = [
-        "message",
-        approved ? "message--approved" : "message--denied",
-      ].join(" ")
-      return (
-        <div className={messageClasses}>
-          <div className='message__title'>{`Flight will be ${
-            approved ? "approved" : "denied"
-          }`}</div>
-          {this.getAreaMessage()}
-        </div>
-      )
     }
+    const approved = this.props.intersectionArea === 0
+    const messageClasses = [
+      "message",
+      approved ? "message--approved" : "message--denied",
+    ].join(" ")
+    return (
+      <div className={messageClasses}>
+        <div className='message__title'>{`Flight will be ${
+          approved ? "approved" : "denied"
+        }`}</div>
+        {this.getAreaMessage()}
+      </div>
+    )
   }
 }

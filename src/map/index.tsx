@@ -98,8 +98,7 @@ export default class Map extends React.Component<MapProps, MapState> {
     this.intersectionLayers.clearLayers()
     this.intersectionPolygons = []
     this.addDrawnLayers()
-    this.setState({ intersectionArea: null })
-    this.addIntersectionLayers()
+    this.setState({ intersectionArea: null }, this.addIntersectionLayers)
   }
 
   addDrawnLayers() {
