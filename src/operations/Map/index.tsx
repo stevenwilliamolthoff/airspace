@@ -4,11 +4,11 @@ import L from "leaflet"
 import "leaflet-draw"
 import "leaflet-draw/dist/leaflet.draw.css"
 import "leaflet/dist/leaflet.css"
-import ControlledAirspaceGeoJson from "../faa-controlled-airspace-DTW"
+import ControlledAirspaceGeoJson from "../../faa-controlled-airspace-DTW"
 import * as turf from "@turf/turf"
 import Message from "./Message"
 import { URL_TEMPLATE, TILE_LAYER_OPTIONS } from "./MapConfig"
-import { Operation } from "../interfaces/operations"
+import { Operation } from "../../interfaces/operations"
 
 interface MapProps {
   operation: Operation | null
