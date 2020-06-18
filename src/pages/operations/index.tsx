@@ -1,10 +1,10 @@
 import React from "react"
-import Map from "./Map"
+import Map from "../../components/Map"
 import "./operations.scss"
-import List from "./List"
-import InfoPanel from "./InfoPanel"
-import api from "../api"
-import { Operation } from "../interfaces/operations"
+import List from "../../components/List"
+import InfoPanel from "../../components/InfoPanel"
+import api from "../../api"
+import { Operation } from "../../interfaces/operations"
 import moment from "moment"
 
 interface OperationsState {
