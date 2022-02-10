@@ -48,7 +48,7 @@
     "leaflet": "^1.6.0",
     "leaflet-draw": "^1.0.4",
     "moment": "^2.25.3",
-    "node-sass": "^4.14.1",
+    "node-sass": "^7.0.0",
     "react-datepicker": "^2.15.0"
   }
 }
